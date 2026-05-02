@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoltContent V2 — Gerador de Conteúdo para Eletricista</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d0d;
+  --surface: #161616;
+  --surface2: #1f1f1f;
+  --border: #2a2a2a;
+  --accent: #f5c842;
+  --accent2: #ff6b35;
+  --text: #f0f0f0;
+  --muted: #888;
+  --radius: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+h1,h2,h3 { font-family: 'Syne', sans-serif; }
+
+.header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; gap: 8px; }
+.logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; color: var(--accent); letter-spacing: -0.02em; }
+.logo span { color: var(--text); }
+.logo small { font-size: 10px; color: var(--muted); font-weight: 400; margin-left: 6px; }
+.header-links { display: flex; gap: 8px; flex-wrap: wrap; }
+.link-pill { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 11px; padding: 5px 10px; border-radius: 20px; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+.link-pill:hover { border-color: var(--accent); color: var(--accent); }
+.link-pill.editar { color: var(--accent2); border-color: var(--accent2); }
+
+.tabs { display: flex; gap: 4px; padding: 1rem 1.5rem 0; border-bottom: 1px solid var(--border); background: var(--surface); overflow-x: auto; }
+.tab { font-family: 'Syne', sans-serif; font-size: 13px; padding: 10px 18px; border-radius: 10px 10px 0 0; cursor: pointer; color: var(--muted); border: 1px solid transparent; border-bottom: none; transition: all 0.2s; white-space: nowrap; }
+.tab.active { background: var(--bg); color: var(--accent); border-color: var(--border); }
+
+.main { display: grid; grid-template-columns: 300px 1fr; min-height: calc(100vh - 110px); }
+.sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; }
+.content-area { padding: 1.5rem; overflow-y: auto; }
+
+.search-wrap { position: relative; }
+.search-input { width: 100%; background: var(--bg); border: 1.5px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 12px 44px 12px 14px; border-radius: var(--radius); outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--muted); }
+.search-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--accent); border: none; border-radius: 8px; color: #000; font-size: 16px; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; }
+.search-btn:hover { opacity: 0.85; }
+
+.section-title { font-size: 10px; font-weight: 500; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+.region-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.region-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 12px; padding: 8px 6px; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s; }
+.region-btn.active { background: #1a1600; border-color: var(--accent); color: var(--accent); }
+.region-btn:hover:not(.active) { border-color: #444; color: var(--text); }
+
+.links-list { display: flex; flex-direction: column; gap: 6px; }
+.link-item { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+.link-icon { font-size: 14px; flex-shrink: 0; }
+.link-name { font-size: 12px; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.link-copy { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 10px; padding: 3px 8px; border-radius: 6px; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
+.link-copy:hover { border-color: var(--accent); color: var(--accent); }
+.add-link-btn { background: none; border: 1px dashed var(--border); color: var(--muted); font-size: 12px; padding: 8px; border-radius: 8px; cursor: pointer; text-align: center; width: 100%; transition: all 0.2s; }
+.add-link-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.result-header { display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.result-tag { background: #1a1600; border: 1px solid var(--accent); color: var(--accent); font-size: 12px; padding: 4px 12px; border-radius: 20px; }
+.result-region-tag { background: #1a0800; border: 1px solid var(--accent2); color: var(--accent2); font-size: 12px; padding: 4px 12px; border-radius: 20px; }
+.result-sazonal { background: #001a10; border: 1px solid #2a6a40; color: #5eda7a; font-size: 11px; padding: 4px 12px; border-radius: 20px; }
+
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.result-full { margin-bottom: 1rem; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem; }
+.card-head { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
+.copy-all { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 10px; padding: 3px 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+.copy-all:hover { border-color: var(--accent); color: var(--accent); }
+
+.hook-list { display: flex; flex-direction: column; gap: 8px; }
+.hook-item { background: var(--surface2); border-left: 3px solid var(--accent); padding: 10px 12px; border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.5; cursor: pointer; transition: background 0.2s; }
+.hook-item:hover { background: #1a1600; }
+.hook-item.viral { border-left-color: var(--accent2); }
+
+.hashtag-box { background: var(--surface2); border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #aaa; line-height: 2.2; }
+.hashtag-box span { color: var(--accent); margin-right: 4px; cursor: pointer; display: inline-block; }
+.hashtag-box span:hover { color: #fff; }
+
+.thumb-prompt { background: var(--surface2); border-radius: 8px; padding: 12px 14px; font-size: 13px; line-height: 1.6; color: var(--text); border-left: 3px solid #9b59b6; cursor: pointer; }
+.thumb-prompt:hover { background: #1a1030; }
+
+.cta-list { display: flex; flex-direction: column; gap: 8px; }
+.cta-item { background: var(--surface2); border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: background 0.2s; }
+.cta-item:hover { background: #1a1600; }
+.cta-platform { font-size: 10px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+.cta-text { font-size: 13px; line-height: 1.5; }
+
+.script-box { background: var(--surface2); border-radius: 8px; padding: 1rem; font-size: 13px; line-height: 1.8; }
+.script-box .script-part { margin-bottom: 8px; }
+.script-box .sp-label { font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 2px; }
+
+/* Platform tabs */
+.plat-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+.plat-tab { font-size: 11px; padding: 5px 12px; border-radius: 20px; cursor: pointer; border: 1px solid var(--border); color: var(--muted); background: none; transition: all 0.2s; }
+.plat-tab.active { background: #1a1600; border-color: var(--accent); color: var(--accent); }
+.plat-content { display: none; }
+.plat-content.active { display: block; }
+.descricao-box { background: var(--surface2); border-radius: 8px; padding: 12px 14px; font-size: 12px; line-height: 1.8; color: #ccc; white-space: pre-line; }
+
+/* Serie */
+.serie-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.serie-pill { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 11px; padding: 4px 10px; border-radius: 20px; }
+.serie-pill:first-child { border-color: var(--accent); color: var(--accent); }
+
+/* Dores / Benefícios */
+.db-pills { display: flex; flex-direction: column; gap: 5px; }
+.dor-pill { background: #1a0808; border-left: 3px solid #c0392b; padding: 6px 10px; border-radius: 0 6px 6px 0; font-size: 12px; color: #f0a0a0; }
+.ben-pill { background: #081a0c; border-left: 3px solid #27ae60; padding: 6px 10px; border-radius: 0 6px 6px 0; font-size: 12px; color: #a0f0b0; }
+
+.app-badge { display: inline-flex; align-items: center; gap: 6px; background: #0a1a10; border: 1px solid #2a5a35; color: #5eda7a; font-size: 12px; padding: 6px 12px; border-radius: 8px; margin-right: 8px; margin-bottom: 6px; cursor: pointer; transition: all 0.2s; }
+.app-badge:hover { background: #0f2a18; }
+
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 1rem; color: var(--muted); text-align: center; }
+.empty-icon { font-size: 48px; opacity: 0.3; }
+.empty-title { font-family: 'Syne', sans-serif; font-size: 1.2rem; color: #555; }
+.empty-sub { font-size: 13px; max-width: 280px; line-height: 1.6; }
+
+/* Sugestões rápidas */
+.sugestoes { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.sug-pill { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 11px; padding: 5px 10px; border-radius: 20px; cursor: pointer; transition: all 0.2s; }
+.sug-pill:hover { border-color: var(--accent); color: var(--accent); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+.modal-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; margin-bottom: 1.25rem; color: var(--accent); }
+.modal-field { margin-bottom: 1rem; }
+.modal-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; display: block; }
+.modal-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 10px 12px; border-radius: 8px; outline: none; }
+.modal-input:focus { border-color: var(--accent); }
+.modal-textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 10px 12px; border-radius: 8px; outline: none; resize: vertical; min-height: 80px; }
+.modal-textarea:focus { border-color: var(--accent); }
+.modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; }
+.btn-cancel { background: none; border: 1px solid var(--border); color: var(--muted); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.btn-save { background: var(--accent); border: none; color: #000; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; }
+
+.db-list { display: flex; flex-direction: column; gap: 8px; }
+.db-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+.db-item-name { font-size: 13px; }
+.db-item-cat { font-size: 10px; color: var(--muted); margin-left: 6px; }
+.db-item-actions { display: flex; gap: 6px; }
+.btn-edit { background: none; border: 1px solid var(--border); color: var(--muted); font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+.btn-del { background: none; border: 1px solid #3a1a1a; color: #c44; font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+.btn-add-content { background: var(--accent); border: none; color: #000; font-size: 13px; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 500; margin-bottom: 1rem; }
+
+.cat-filter { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
+.cat-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 11px; padding: 5px 12px; border-radius: 20px; cursor: pointer; transition: all 0.2s; }
+.cat-btn.active { background: #1a1600; border-color: var(--accent); color: var(--accent); }
+
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--accent); color: #000; font-size: 13px; font-weight: 500; padding: 10px 18px; border-radius: 10px; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 999; }
+.toast.show { opacity: 1; }
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+.region-info { background: var(--surface2); border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.7; }
+.region-info strong { color: var(--accent); }
+
+@media (max-width: 700px) {
+  .main { grid-template-columns: 1fr; }
+  .sidebar { border-right: none; border-bottom: 1px solid var(--border); }
+  .result-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Volt<span>Content</span><small>V2</small></div>
+  <div class="header-links" id="headerLinks"></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('busca', this)">⚡ Busca Rápida</div>
+  <div class="tab" onclick="switchTab('regiao', this)">📍 Por Região</div>
+  <div class="tab" onclick="switchTab('conteudos', this)">📂 Meus Conteúdos</div>
+  <div class="tab" onclick="switchTab('links', this)">🔗 Meus Links</div>
+</div>
+
+<!-- TAB BUSCA -->
+<div id="tab-busca" class="panel active">
+  <div class="main">
+    <div class="sidebar">
+      <div>
+        <div class="section-title">O que você está fazendo?</div>
+        <div class="search-wrap">
+          <input class="search-input" id="searchInput" placeholder="Ex: chuveiro, solar, NR-10..." onkeydown="if(event.key==='Enter')buscar()">
+          <button class="search-btn" onclick="buscar()">→</button>
+        </div>
+        <div class="sugestoes" id="sugestoesRapidas"></div>
+      </div>
+      <div>
+        <div class="section-title">Região alvo</div>
+        <div class="region-grid" id="regionBtns">
+          <div class="region-btn active" onclick="selectRegion('all', this)">Todas</div>
+          <div class="region-btn" onclick="selectRegion('sp', this)">Grande SP</div>
+          <div class="region-btn" onclick="selectRegion('isp', this)">Interior SP</div>
+          <div class="region-btn" onclick="selectRegion('bh', this)">BH / MG</div>
+          <div class="region-btn" onclick="selectRegion('img', this)">Interior MG</div>
+          <div class="region-btn" onclick="selectRegion('ba', this)">Bahia</div>
+          <div class="region-btn" onclick="selectRegion('ne', this)">Nordeste</div>
+          <div class="region-btn" onclick="selectRegion('rj', this)">Rio de Janeiro</div>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Objetivo do conteúdo</div>
+        <div class="region-grid">
+          <div class="region-btn active" id="obj-conteudo" onclick="selectObj('conteudo', this)">Só conteúdo</div>
+          <div class="region-btn" id="obj-app" onclick="selectObj('app', this)">Vender app</div>
+          <div class="region-btn" id="obj-afiliado" onclick="selectObj('afiliado', this)">Afiliado</div>
+          <div class="region-btn" id="obj-ferramenta" onclick="selectObj('ferramenta', this)">Ferramenta</div>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Links rápidos</div>
+        <div class="links-list" id="sidebarLinks"></div>
+      </div>
+    </div>
+    <div class="content-area" id="resultArea">
+      <div class="empty-state">
+        <div class="empty-icon">⚡</div>
+        <div class="empty-title">Pronto para criar conteúdo</div>
+        <div class="empty-sub">Digite o assunto do seu vídeo ao lado e clique na seta. Em segundos você tem tudo pronto.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB REGIÃO -->
+<div id="tab-regiao" class="panel">
+  <div class="main">
+    <div class="sidebar">
+      <div>
+        <div class="section-title">Escolha a região</div>
+        <div class="region-grid" id="regionTabBtns">
+          <div class="region-btn active" onclick="selectRegionTab('sp', this)">Grande SP</div>
+          <div class="region-btn" onclick="selectRegionTab('isp', this)">Interior SP</div>
+          <div class="region-btn" onclick="selectRegionTab('bh', this)">BH / MG</div>
+          <div class="region-btn" onclick="selectRegionTab('img', this)">Interior MG</div>
+          <div class="region-btn" onclick="selectRegionTab('ba', this)">Bahia</div>
+          <div class="region-btn" onclick="selectRegionTab('ne', this)">Nordeste</div>
+          <div class="region-btn" onclick="selectRegionTab('rj', this)">Rio de Janeiro</div>
+        </div>
+      </div>
+      <div id="regionInfoBox"></div>
+      <div>
+        <div class="section-title">Assunto para esta região</div>
+        <div class="search-wrap">
+          <input class="search-input" id="regionSearch" placeholder="Ex: disjuntor, solar, NR-10..." onkeydown="if(event.key==='Enter')buscarRegiao()">
+          <button class="search-btn" onclick="buscarRegiao()">→</button>
+        </div>
+      </div>
+    </div>
+    <div class="content-area" id="regionResult">
+      <div class="empty-state">
+        <div class="empty-icon">📍</div>
+        <div class="empty-title">Selecione uma região</div>
+        <div class="empty-sub">Escolha a região onde quer divulgar e digite o tipo de conteúdo.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB CONTEÚDOS -->
+<div id="tab-conteudos" class="panel">
+  <div style="padding: 1.5rem;">
+    <button class="btn-add-content" onclick="openAddContent()">+ Adicionar conteúdo personalizado</button>
+    <div class="cat-filter" id="catFilter"></div>
+    <div class="db-list" id="dbList"></div>
+  </div>
+</div>
+
+<!-- TAB LINKS -->
+<div id="tab-links" class="panel">
+  <div style="padding: 1.5rem; max-width: 600px;">
+    <h2 style="font-size: 1rem; margin-bottom: 1rem; color: var(--accent);">Meus Links</h2>
+    <div class="links-list" id="linksList"></div>
+    <button class="add-link-btn" style="margin-top: 10px;" onclick="openAddLink()">+ Adicionar link</button>
+  </div>
+</div>
+
+<!-- MODAIS -->
+<div class="modal-overlay" id="modalLink">
+  <div class="modal">
+    <div class="modal-title">Adicionar link</div>
+    <div class="modal-field"><label class="modal-label">Nome</label><input class="modal-input" id="linkName" placeholder="Ex: Meu App, Canal YouTube..."></div>
+    <div class="modal-field"><label class="modal-label">Ícone (emoji)</label><input class="modal-input" id="linkIcon" placeholder="Ex: 📱 🎬 📸" style="font-size:18px; max-width:80px;"></div>
+    <div class="modal-field"><label class="modal-label">URL</label><input class="modal-input" id="linkUrl" placeholder="https://..."></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modalLink')">Cancelar</button>
+      <button class="btn-save" onclick="saveLink()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalContent">
+  <div class="modal">
+    <div class="modal-title" id="modalContentTitle">Adicionar conteúdo</div>
+    <div class="modal-field"><label class="modal-label">Palavra-chave / assunto</label><input class="modal-input" id="contentKey" placeholder="Ex: chuveiro elétrico, placa solar..."></div>
+    <div class="modal-field"><label class="modal-label">Hooks (um por linha)</label><textarea class="modal-textarea" id="contentHooks" placeholder="Chuveiro queimou? Veja o erro mais comum&#10;O segredo que ninguém te conta..."></textarea></div>
+    <div class="modal-field"><label class="modal-label">Hashtags (separadas por espaço)</label><textarea class="modal-textarea" id="contentHashtags" placeholder="#chuveiro #eletricista #instalacao"></textarea></div>
+    <div class="modal-field"><label class="modal-label">Dica de thumbnail</label><input class="modal-input" id="contentThumb" placeholder="Ex: Fundo vermelho + texto CHUVEIRO QUEIMADO"></div>
+    <div class="modal-field"><label class="modal-label">CTA sugerido</label><input class="modal-input" id="contentCTA" placeholder="Ex: Baixe o app no link da bio"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('modalContent')">Cancelar</button>
+      <button class="btn-save" onclick="saveContent()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// REGRA 5: DADOS — camada separada
+// ============================================================
+
+const REGION_DATA = {
+  sp:  { label: 'Grande SP',   emoji: '🏙', cor: '#1a4080', hashtags: '#eletricistaSP #eletricistaSãoPaulo #construcaocivil #eletricistaauto #obraSP', dor: 'Orçamento e precificação competitiva', perfil: 'Autônomo 25–40 anos, alta rotatividade, mercado competitivo', oportunidade: 'Alto volume de obras, muita demanda por automação e solar' },
+  isp: { label: 'Interior SP', emoji: '🏘', cor: '#0a2a50', hashtags: '#eletricistaCampinas #eletricistaRibeirão #eletricistainteriorSP #construcaocivil', dor: 'Menos concorrência digital — mercado virgem', perfil: 'Campinas, Ribeirão, Sorocaba, São José dos Campos', oportunidade: 'Primeiro a aparecer no digital ganha o mercado' },
+  bh:  { label: 'BH / RMBH',  emoji: '⛰', cor: '#1a3a10', hashtags: '#eletricistaBH #eletricistaBeloHorizonte #eletricistaMinasGerais #NBR5410 #eletricistaMG', dor: 'Cálculo técnico, NBR e obras industriais', perfil: 'Mais experiente, industrial e predial, mercado técnico exigente', oportunidade: 'Serviços técnicos e laudos têm alta demanda' },
+  img: { label: 'Interior MG', emoji: '🌄', cor: '#1a2a10', hashtags: '#eletricistaUberlândia #eletricistaJuizdeFora #eletricistainteriorMG', dor: 'Mercado virgem digital, pouca concorrência online', perfil: 'Uberlândia, JF, Montes Claros, Triângulo Mineiro', oportunidade: 'Solar tem alto potencial — muita irradiação e poucos digitais' },
+  ba:  { label: 'Bahia',       emoji: '☀', cor: '#3a1a00', hashtags: '#eletricistaBahia #eletricistaSalvador #eletricistaNordeste #solarfotovoltaicoBahia', dor: 'Segurança elétrica + Solar fotovoltaico em expansão', perfil: 'Autônomo informal, muito potencial solar', oportunidade: 'Solar é o serviço mais demandado' },
+  ne:  { label: 'Nordeste',    emoji: '🌵', cor: '#4a1a00', hashtags: '#eletricistaNordeste #eletristaRecife #eletricistaMaceio #eletristaFortaleza #solarNordeste', dor: 'Solar em expansão acelerada', perfil: 'Mercado crescendo rápido, pouca concorrência técnica', oportunidade: 'Primeiro a se posicionar como especialista solar domina' },
+  rj:  { label: 'Rio de Janeiro', emoji: '🏖', cor: '#0a3a2a', hashtags: '#eletristaRJ #eletricistaRiodeJaneiro #eletricistaRio #construcaoRJ', dor: 'Alta concorrência, mercado exigente por qualidade', perfil: 'Residencial e comercial, muito condomínio', oportunidade: 'Conteúdo sobre normas e segurança tem grande apelo' },
+};
+
+// ============================================================
+// KB COMPLETO — 56 assuntos
+// ============================================================
+const KB = {
+
+  // ⚡ INSTALAÇÕES RESIDENCIAIS
+  'chuveiro': {
+    categoria: 'instalacoes', tema: 'Chuveiro Elétrico',
+    dores: ['chuveiro dando choque','disjuntor caindo toda hora','chuveiro fraco no máximo','fio queimando atrás da parede'],
+    beneficios: ['instalação segura sem risco de incêndio','chuveiro funcionando no máximo sem cair disjuntor','economia na conta de luz'],
+    hooks: ['Chuveiro dando choque? Pode ser esse fio que ninguém verifica','O erro que faz o chuveiro queimar em menos de 6 meses','Chuveiro fraco mesmo no máximo — a causa real que ninguém fala','Instalei do jeito errado por anos. Veja o certo agora','Disjuntor cai toda vez que liga o chuveiro? É isso aqui'],
+    hookViral: 'Seu chuveiro tá queimando fio e você nem sabe — veja antes de virar incêndio',
+    hashtags: { all: '#chuveiro #chuveireletrico #eletricista #instalacaodechuveiro #eletricistabrasil #dicaeletricista #NR10 #segurancaeletrica', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Fundo vermelho vibrante, close em fio elétrico derretido saindo de chuveiro, texto em branco bold "VAI PEGAR FOGO" no topo, logo do canal canto inferior direito, iluminação dramática',
+    ctas: { app: 'Calcula bitola e disjuntor certo pra chuveiro — baixe o app no link da bio', conteudo: 'Salva esse vídeo pra não esquecer na próxima instalação', afiliado: 'Link do disjuntor certo que eu uso nas obras — na bio', ferramenta: 'Alicate que uso pra fazer essa instalação com segurança — link na bio' },
+    descricoes: {
+      youtube: '⚡ Neste vídeo você vai aprender como instalar chuveiro elétrico corretamente, evitando os erros mais comuns que causam incêndio e choque elétrico.\n\n✅ O que você vai ver:\n- Bitola certa para cada tipo de chuveiro\n- Como escolher o disjuntor ideal\n- Passo a passo da instalação segura\n- Os erros que todo eletricista comete\n\n🔗 Links úteis:\n[LINK_APP] — App de cálculo elétrico\n[LINK_AFILIADO] — Disjuntor que recomendo\n\n👍 Se ajudou, deixa o like!\n\n#chuveiro #instalacaoeletrica #eletricista',
+      instagram: '⚡ Chuveiro dando choque? Para TUDO e vê esse vídeo!\n\nO erro mais comum na instalação pode virar incêndio — e a maioria dos eletricistas ainda comete.\n\n✅ Bitola certa\n✅ Disjuntor ideal\n✅ Instalação segura\n\n🔗 Link do app de cálculo na bio!\n\n#chuveiro #eletricista #instalacao #dicaeletricista',
+      tiktok: 'Esse erro no chuveiro pode virar incêndio 🔥⚡ Salva antes de instalar! #chuveiro #eletricista #dicarapida #viral'
+    },
+    script: { hook: 'Você instalou o chuveiro, mas tem um erro que vai queimar tudo em 6 meses.', problema: 'A maioria usa bitola 2.5mm pra chuveiro de 5500W. O fio aquece, o isolamento derrete e vira risco de incêndio.', solucao: 'Chuveiro de 5500W precisa de fio 6mm e disjuntor bipolar de 32A.', demo: 'Abre o app, digita a potência do chuveiro, ele já te diz bitola e disjuntor certo.', cta: 'Salva esse vídeo e manda pra um eletricista que ainda faz errado.' },
+    serie: ['Instalação do zero','Bitola e disjuntor certo','Chuveiro trifásico','Manutenção e limpeza','Troca sem desligar geral'], sazonal: null
+  },
+
+  'tomada': {
+    categoria: 'instalacoes', tema: 'Instalação de Tomada',
+    dores: ['tomada soltando faísca','tomada que não funciona','tomada queimada','tomada aquecendo'],
+    beneficios: ['tomada segura sem risco de choque','instalação no padrão NBR','durabilidade por anos'],
+    hooks: ['Tomada soltando faísca? O motivo real que ninguém te conta','Como trocar tomada sem desligar o disjuntor — e quando NÃO fazer isso','O padrão de tomada que você ainda instala errado','Tomada queimando plugue? Esse é o erro de instalação','3 tipos de tomada e quando usar cada uma'],
+    hookViral: 'Essa tomada vai dar choque no seu cliente — e você instalou ela assim',
+    hashtags: { all: '#tomada #instalacaodetomada #eletricista #tomadaNBR #dicaeletricista #eletricistabrasil #segurancaeletrica', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Close extremo em tomada elétrica queimada e derretida, fundo escuro, texto vermelho bold "ISSO DÁ CHOQUE" na parte superior, contraste dramático',
+    ctas: { app: 'Calcula carga certa pra cada tomada — app no link da bio', conteudo: 'Salva esse vídeo antes da próxima instalação', afiliado: 'Tomada NBR que uso em todas as obras — link na bio', ferramenta: 'Chave de fenda isolada que uso — link na bio' },
+    descricoes: {
+      youtube: '⚡ Aprenda a instalar tomada do jeito certo, no padrão NBR, sem risco de choque ou incêndio.\n\n✅ O que você vai ver:\n- Diferença entre tomada 10A e 20A\n- Como fazer a ligação correta\n- Erros que causam faísca e choque\n\n#tomada #eletricista #instalacao',
+      instagram: '⚡ Tomada faiscando é sinal de perigo!\n\nVeja como instalar do jeito certo 👇\n\n✅ Padrão NBR ✅ Sem risco ✅ Durável\n\n🔗 Link na bio!\n\n#tomada #eletricista #instalacao',
+      tiktok: 'Tomada faiscando assim é PERIGO ⚡🚨 #tomada #eletricista #viral'
+    },
+    script: { hook: 'Toda tomada que faísca já foi instalada errada — e o erro é sempre o mesmo.', problema: 'Conexão frouxa no borne, fio sem terminal, bitola errada pra carga.', solucao: 'Conexão firme, terminal em todo fio, tomada 20A pra equipamentos pesados.', demo: 'Vou mostrar a diferença ao vivo — tomada instalada errada vs. certa.', cta: 'Salva esse vídeo e manda pra quem você sabe que faz errado.' },
+    serie: ['Tipos de tomada','Como trocar','Tomada externa','Tomada de embutir','Tomada USB inteligente'], sazonal: null
+  },
+
+  'interruptor': {
+    categoria: 'instalacoes', tema: 'Interruptor e Three-Way',
+    dores: ['interruptor que não desliga','luz piscando','three-way com defeito','interruptor aquecendo'],
+    beneficios: ['controle correto da iluminação','instalação three-way funcionando','economia de energia'],
+    hooks: ['Three-way nunca funciona na primeira tentativa? Veja o diagrama certo','Interruptor aquecendo é sinal de perigo — faça isso agora','Como instalar paralelo (three-way) do zero sem erro','Luz piscando mesmo com lâmpada nova — o real motivo','Interruptor que não desliga completamente — entenda por quê'],
+    hookViral: 'Esse interruptor vai pegar fogo antes do fim do mês — veja os sinais',
+    hashtags: { all: '#interruptor #threeway #instalacaoeletrica #eletricista #dicaeletricista #eletricistabrasil #NBR5410', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Diagrama elétrico de three-way com setas coloridas, fundo preto, texto amarelo bold "FINALMENTE FUNCIONA", estilo técnico profissional',
+    ctas: { app: 'Diagrama de qualquer circuito no app — link na bio', conteudo: 'Salva esse vídeo pra nunca mais errar o three-way', afiliado: 'Interruptor que uso em todas as obras — link na bio', ferramenta: 'Testador de circuito que me salva todo dia — link na bio' },
+    descricoes: {
+      youtube: '⚡ Three-way, paralelo, interruptor simples — aprenda todos de uma vez.\n\n✅ Conteúdo:\n- Interruptor simples\n- Paralelo (three-way)\n- Dimmer\n- Erros mais comuns\n\n#interruptor #threeway #eletricista',
+      instagram: '⚡ Three-way travando sua vida?\n\nEsse diagrama resolve de uma vez 👇\n\n🔗 Link na bio!\n\n#interruptor #threeway #eletricista',
+      tiktok: 'Three-way em 60 segundos ⚡ Salva! #eletricista #threeway #viral'
+    },
+    script: { hook: 'Instalei three-way errado 3 vezes seguidas. Na quarta descobri esse diagrama.', problema: 'A maioria não entende a lógica do paralelo e vai no chute.', solucao: 'Two traveller wires entre os dois interruptores. Fase entra em L no primeiro, saída em L no segundo.', demo: 'Vou fazer ao vivo com o diagrama na tela — passo a passo.', cta: 'Salva esse vídeo. Você vai precisar na próxima obra.' },
+    serie: ['Interruptor simples','Three-way','Dimmer','Interruptor inteligente','Automação de iluminação'], sazonal: null
+  },
+
+  'quadro eletrico': {
+    categoria: 'instalacoes', tema: 'Quadro Elétrico Residencial',
+    dores: ['quadro desorganizado','disjuntores sem identificação','quadro sobrecarregado','quadro sem aterramento'],
+    beneficios: ['quadro organizado e seguro','fácil identificação de circuitos','proteção completa'],
+    hooks: ['Quadro elétrico desorganizado é bomba-relógio — veja como organizar','Quantos disjuntores você realmente precisa? A conta que todo eletricista faz errado','Montar quadro elétrico do zero — passo a passo completo','Esse quadro não passa em nenhuma vistoria','Como identificar todos os circuitos em 10 minutos'],
+    hookViral: 'Esse quadro elétrico vai causar incêndio — e o dono nem sabe do risco',
+    hashtags: { all: '#quadroeletrico #disjuntor #instalacaoeletrica #eletricista #NBR5410 #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Split screen: esquerda quadro elétrico bagunçado e perigoso, direita quadro organizado e identificado, texto central "ANTES vs DEPOIS", fundo escuro',
+    ctas: { app: 'Dimensiona qualquer quadro no app — link na bio', conteudo: 'Salva e manda pra quem tem quadro bagunçado', afiliado: 'Quadro de distribuição que recomendo — link na bio', ferramenta: 'Kit de organização de quadro — link na bio' },
+    descricoes: {
+      youtube: '⚡ Montar e organizar quadro elétrico residencial do zero, no padrão NBR 5410.\n\n✅ Conteúdo:\n- Dimensionamento\n- Escolha dos disjuntores\n- Organização e identificação\n- Aterramento\n\n#quadroeletrico #eletricista #NBR5410',
+      instagram: '⚡ Quadro bagunçado é risco de vida!\n\nVeja como organizar do jeito certo 👇\n\n🔗 Link na bio!\n\n#quadroeletrico #eletricista #instalacao',
+      tiktok: 'Quadro elétrico assim é BOMBA-RELÓGIO 💣⚡ #quadroeletrico #eletricista #viral'
+    },
+    script: { hook: 'Encontrei um quadro com 3 disjuntores alimentando 15 circuitos.', problema: 'Quadro subdimensionado sobrecarrega os condutores e vira risco real de incêndio.', solucao: 'Cada circuito tem seu disjuntor dimensionado pela carga.', demo: 'Vou montar um quadro do zero ao vivo.', cta: 'Salva esse vídeo. Na próxima instalação você vai agradecer.' },
+    serie: ['Dimensionamento','Montagem física','Identificação','Aterramento','Vistoria e laudo'], sazonal: null
+  },
+
+  'aterramento': {
+    categoria: 'instalacoes', tema: 'Aterramento Elétrico',
+    dores: ['instalação sem aterramento','choque em equipamentos','equipamentos queimando','cliente levando choque'],
+    beneficios: ['proteção completa contra choque','equipamentos protegidos','instalação dentro da norma'],
+    hooks: ['Instalação sem aterramento — o risco que o cliente não vê mas você sabe','Como fazer aterramento certo em qualquer residência','Haste de aterramento: profundidade certa e como cravar','Aterramento ou DPS? Quando usar cada um','Resistência de aterramento: como medir e qual valor aceitável'],
+    hookViral: 'Esse apartamento não tem aterramento — e o dono leva choque todo dia sem saber o motivo',
+    hashtags: { all: '#aterramento #ateramentoeletrico #eletricista #NBR5410 #segurancaeletrica #hastedeaterramento #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Close em tomada elétrica sem fio terra, círculo vermelho sinalizando o fio faltante, fundo escuro, texto bold "SEM ISSO = CHOQUE"',
+    ctas: { app: 'Calcula aterramento e DPS correto no app — link na bio', conteudo: 'Salva esse vídeo — aterramento salva vidas', afiliado: 'Haste de aterramento que uso — link na bio', ferramenta: 'Terrômetro pra medir resistência — link na bio' },
+    descricoes: {
+      youtube: '⚡ Aterramento elétrico correto pode salvar vidas. Aprenda como fazer do zero.\n\n✅ Conteúdo:\n- O que é e por que é obrigatório\n- Tipos de aterramento\n- Como cravar a haste\n- Como medir resistência\n\n#aterramento #eletricista #seguranca',
+      instagram: '⚡ Sem aterramento seu cliente toma choque todo dia!\n\nVeja como fazer certo 👇\n\n🔗 Link na bio!\n\n#aterramento #eletricista #segurancaeletrica',
+      tiktok: 'Sem aterramento = choque garantido ⚡ #aterramento #eletricista #dica #seguranca'
+    },
+    script: { hook: 'Fui chamado pra ver por que o cliente levava choque na pia. Não tinha aterramento em nenhum ponto.', problema: 'Sem aterramento, qualquer falha de isolamento vira choque direto no usuário.', solucao: 'Haste de cobre de 2,4m cravada a pelo menos 1,2m, fio verde-amarelo 6mm ligando ao barramento de terra.', demo: 'Vou mostrar o processo completo — cravar a haste, medir resistência e ligar ao quadro.', cta: 'Salva esse vídeo. Aterramento não é opcional.' },
+    serie: ['O que é aterramento','Como instalar','Como medir','DPS + aterramento','Laudo de aterramento'], sazonal: null
+  },
+
+  'ar condicionado': {
+    categoria: 'instalacoes', tema: 'Instalação de Ar Condicionado Split',
+    dores: ['instalação elétrica errada do split','disjuntor caindo com o ar','ar desligando sozinho','fio subdimensionado'],
+    beneficios: ['ar funcionando sem cair disjuntor','instalação elétrica correta','sem risco de queimar o compressor'],
+    hooks: ['Instalou split e o disjuntor cai? É esse erro elétrico','Bitola certa pra cada BTU — a tabela que todo eletricista precisa','Como fazer a instalação elétrica do ar condicionado do zero','Ar condicionado queimado por erro elétrico — como evitar','Circuito exclusivo pro ar: obrigatório ou opcional?'],
+    hookViral: 'Esse split vai queimar o compressor em 3 meses — o eletricista instalou o fio errado',
+    hashtags: { all: '#arcondicionado #split #instalacaodear #eletricista #BTU #circuitoexclusivo #instalacaoeletrica #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Unidade condensadora de ar condicionado com fios elétricos em destaque, círculo vermelho no fio errado, texto bold "ERRO QUE QUEIMA O COMPRESSOR", fundo escuro',
+    ctas: { app: 'Calcula bitola e disjuntor pra qualquer BTU — app no link da bio', conteudo: 'Salva esse vídeo antes de instalar qualquer split', afiliado: 'Disjuntor bipolar que uso pra ar — link na bio', ferramenta: 'Multímetro pra testar instalação — link na bio' },
+    descricoes: {
+      youtube: '⚡ Instalação elétrica de ar condicionado split do zero.\n\n✅ Conteúdo:\n- Tabela de bitola por BTU\n- Disjuntor correto\n- Circuito exclusivo\n- Ligação da unidade\n\n#arcondicionado #split #eletricista',
+      instagram: '⚡ Disjuntor caindo com o ar?\n\nEsse é o erro elétrico mais comum na instalação do split 👇\n\n🔗 Link na bio!\n\n#arcondicionado #split #eletricista',
+      tiktok: 'Esse erro elétrico queima o compressor do split 🥶⚡ Salva! #arcondicionado #eletricista #viral'
+    },
+    script: { hook: 'Fui chamado pra ver um split que desligava sozinho. O fio era 1.5mm pra um ar de 12.000 BTU.', problema: 'Fio subdimensionado aquece, a proteção térmica do compressor desliga o equipamento.', solucao: 'Ar de 9000 BTU: fio 2.5mm + disjuntor 20A. Ar de 12000: 2.5mm + 25A. Ar de 18000+: 4mm + 30A.', demo: 'Vou mostrar a tabela e fazer a instalação ao vivo.', cta: 'App com tabela de bitola por BTU — link na bio.' },
+    serie: ['Elétrica do split','Instalação física','Manutenção','Limpeza','Troca de gás'], sazonal: 'verao'
+  },
+
+  'passagem de fios': {
+    categoria: 'instalacoes', tema: 'Passagem de Fios e Cabeamento',
+    dores: ['fio emperrado na parede','sem guia pra passar fio','parede rasgando demais','perda de tempo em passagem'],
+    beneficios: ['passagem rápida e limpa','sem quebrar a parede toda','acabamento profissional'],
+    hooks: ['Como passar fio em parede sem quebrar tudo — técnica profissional','Guia de fio: como fazer na hora com o que tem na obra','Passagem de fio em laje — a técnica que economiza 2 horas','Fio emperrado na parede? Como resolver sem rasgar mais','Como esconder fio elétrico em 5 técnicas diferentes'],
+    hookViral: 'Passei 3 horas pra passar um fio em parede de alvenaria. Depois aprendi esse truque',
+    hashtags: { all: '#passagemdeFios #cabeamento #instalacaoeletrica #eletricista #dicaeletricista #eletricistabrasil #eletroduto', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Mão de eletricista passando fio elétrico pelo eletroduto na parede, iluminação de obra, texto bold "O TRUQUE QUE FUNCIONA SEMPRE"',
+    ctas: { app: 'Planeja passagem de fios no app antes de rasgar — link na bio', conteudo: 'Salva esse vídeo pra próxima obra', afiliado: 'Guia de fio profissional que uso — link na bio', ferramenta: 'Detector de fios na parede — link na bio' },
+    descricoes: {
+      youtube: '⚡ Como passar fio elétrico em parede de alvenaria, drywall e laje sem rasgar tudo.\n\n✅ Técnicas:\n- Guia de fio artesanal\n- Passagem em eletroduto\n- Drywall sem corte\n- Laje com canaleta\n\n#passagemdeFios #eletricista #obra',
+      instagram: '⚡ Passou horas pra passar um fio?\n\nEsse truque resolve em minutos 👇\n\n🔗 Link na bio!\n\n#eletricista #passagemdeFios #dica',
+      tiktok: 'Truque de eletricista pra passar fio sem quebrar tudo 🔥 Salva! #eletricista #viral'
+    },
+    script: { hook: 'Eletricista novo perde 3 horas em passagem de fio. Eletricista experiente faz em 20 minutos.', problema: 'Sem técnica certa, o fio emperra, a guia dobra, e você rasga a parede toda.', solucao: 'Guia de aço flexível, vaselina no eletroduto, fio de nylon pra caminhos longos.', demo: 'Vou mostrar ao vivo — parede de alvenaria, 6 metros, sem rasgar nada.', cta: 'Salva esse vídeo. Você vai usar na próxima obra.' },
+    serie: ['Alvenaria','Drywall','Laje','Eletroduto','Canaleta aparente'], sazonal: null
+  },
+
+  'ventilador de teto': {
+    categoria: 'instalacoes', tema: 'Ventilador de Teto',
+    dores: ['ventilador balançando','ventilador barulhento','instalação na laje errada','suporte solto'],
+    beneficios: ['ventilador estável sem barulho','instalação segura no teto','economia vs ar condicionado'],
+    hooks: ['Ventilador de teto balançando — o erro de instalação que ninguém corrige','Como instalar ventilador de teto em laje sem caixa de teto','Ventilador fazendo barulho? Antes de trocar, testa isso','Por que ventilador de teto não precisa de circuito exclusivo'],
+    hookViral: 'Esse ventilador de teto vai cair — e o eletricista instalou semana passada',
+    hashtags: { all: '#ventiladordeteto #ventilador #instalacaoeletrica #eletricista #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Ventilador de teto em ângulo dramático, parafusos soltos visíveis, texto vermelho bold "VAI CAIR", luz dramática',
+    ctas: { app: 'Calcula carga elétrica de ventiladores no app — link na bio', conteudo: 'Salva esse vídeo antes de instalar', afiliado: 'Suporte universal de ventilador que confio — link na bio', ferramenta: 'Parafusadeira pra instalação de teto — link na bio' },
+    descricoes: {
+      youtube: '⚡ Instalação de ventilador de teto correta — fixação, elétrica e controle remoto.\n\n✅ Conteúdo:\n- Tipos de suporte\n- Instalação em laje\n- Ligação elétrica\n- Controle remoto\n\n#ventiladordeteto #eletricista',
+      instagram: '⚡ Ventilador balançando é PERIGO!\n\nVeja como instalar do jeito certo 👇\n\n🔗 Link na bio!\n\n#ventilador #eletricista #dica',
+      tiktok: 'Ventilador de teto instalado errado vai CAIR 😱⚡ #ventilador #eletricista #viral'
+    },
+    script: { hook: 'Um ventilador de teto caiu enquanto o cliente dormia. O suporte tinha sido instalado na drywall sem buchas.', problema: 'Ventilador pesado precisa de fixação direta na laje ou estrutura de madeira.', solucao: 'Caixa de teto com fixação em laje, parafusos adequados pro peso, nivelamento antes de fixar.', demo: 'Vou mostrar a instalação completa — do suporte até a ligação elétrica.', cta: 'Salva esse vídeo. Ventilador caindo machuca e gera processo.' },
+    serie: ['Escolha do ventilador','Instalação física','Ligação elétrica','Controle remoto','Manutenção'], sazonal: 'verao'
+  },
+
+  'disjuntor': {
+    categoria: 'instalacoes', tema: 'Disjuntor e Proteção Elétrica',
+    dores: ['disjuntor aquecendo','disjuntor subdimensionado','não sabe escolher disjuntor','disjuntor caindo sem motivo'],
+    beneficios: ['circuito protegido corretamente','disjuntor dimensionado pela carga','instalação segura'],
+    hooks: ['Disjuntor certo pra cada circuito — tabela que todo eletricista precisa','Disjuntor bipolar vs monopolar: quando usar cada um','Por que o disjuntor fica quente — o que fazer antes que exploda','Como calcular disjuntor pra qualquer circuito em 30 segundos'],
+    hookViral: 'Esse disjuntor vai pegar fogo antes do fim do ano — você provavelmente tem um igual',
+    hashtags: { all: '#disjuntor #protecaoeletrica #eletricista #calculoeletrico #NBR5410 #instalacaoeletrica #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Disjuntor elétrico queimado e enegrecido em close extremo, texto vermelho bold "ESSE VAI PEGAR FOGO"',
+    ctas: { app: 'Calcula qualquer disjuntor em segundos — app no link da bio', conteudo: 'Salva esse vídeo e manda pro seu parceiro de obra', afiliado: 'Disjuntores que eu confio — link na bio', ferramenta: 'Alicate amperímetro pra medir corrente — link na bio' },
+    descricoes: {
+      youtube: '⚡ Como calcular e escolher disjuntor para qualquer circuito — guia completo.\n\n✅ Conteúdo:\n- Tipos de disjuntor\n- Como calcular\n- Bipolar vs monopolar\n- Por que aquece\n\n#disjuntor #eletricista',
+      instagram: '⚡ Disjuntor aquecendo é sinal de PERIGO!\n\nVeja como escolher o certo 👇\n\n🔗 Link na bio!\n\n#disjuntor #eletricista #seguranca',
+      tiktok: 'Esse disjuntor vai pegar fogo ⚡🔥 Você tem um igual? #disjuntor #eletricista #viral'
+    },
+    script: { hook: 'Você sabe de cor qual disjuntor usar em cada circuito? A maioria vai no chute.', problema: 'Disjuntor subdimensionado não desliga quando precisa. Risco de incêndio.', solucao: 'Corrente do circuito dividida por 0.75 pra ter margem de segurança.', demo: 'App calcula e indica o disjuntor certo em 10 segundos.', cta: 'Link do app na bio. Grátis.' },
+    serie: ['Tipos','Como calcular','Bipolar vs monopolar','Dimensionamento','Quadro completo'], sazonal: null
+  },
+
+  'bitola': {
+    categoria: 'instalacoes', tema: 'Bitola de Fios e Cabos',
+    dores: ['fio subdimensionado aquecendo','não sabe qual bitola usar','material comprado errado'],
+    beneficios: ['instalação segura','bitola certa em campo em 10 segundos','economia de material'],
+    hooks: ['Bitola errada é o erro número 1 do eletricista','Fio 2.5mm ou 4mm? Depende disso aqui','Como calcular bitola pra qualquer circuito em campo','A tabela de bitola que eu uso em todas as obras'],
+    hookViral: 'Esse fio vai derreter antes do fim do verão — você provavelmente tem igual na parede',
+    hashtags: { all: '#bitola #fieletrico #caboseletricos #eletricista #calculoeletrico #instalacaoeletrica #NBR5410 #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Fio elétrico derretido com isolamento queimado, close extremo, texto bold "VAI PEGAR FOGO ANTES DO VERÃO"',
+    ctas: { app: 'Calcula bitola certa pra qualquer circuito — app grátis no link da bio', conteudo: 'Salva esse vídeo — vai precisar na próxima instalação', afiliado: 'Cabo de cobre que recomendo — link na bio', ferramenta: 'Alicate decapador que uso — link na bio' },
+    descricoes: {
+      youtube: '⚡ Tabela de bitola de fios — como calcular a bitola certa.\n\n✅ Conteúdo:\n- Tabela NBR 5410\n- Como calcular corrente\n- Bitola por equipamento\n- App de cálculo\n\n#bitola #eletricista',
+      instagram: '⚡ Fio errado = instalação que vai pegar fogo!\n\nVeja a tabela certa 👇\n\n🔗 Link na bio!\n\n#bitola #eletricista #seguranca',
+      tiktok: 'Esse fio vai derreter ⚡🔥 Você tem igual na parede? #bitola #eletricista #viral'
+    },
+    script: { hook: 'Metade das instalações elétricas tem bitola errada. E a maioria nunca vai saber — até pegar fogo.', problema: 'Fio subdimensionado aquece, derrete o isolamento e vira risco de incêndio.', solucao: 'Calcular corrente e consultar tabela NBR 5410.', demo: 'No app você digita potência e tensão — ele calcula corrente e indica a bitola.', cta: 'Baixa grátis na bio.' },
+    serie: ['Conceitos','Tabela NBR','Cálculo','Bitola por equipamento','App'], sazonal: null
+  },
+
+  // 🌞 SOLAR
+  'solar': {
+    categoria: 'solar', tema: 'Energia Solar Fotovoltaica',
+    dores: ['conta de luz alta','sistema solar mal dimensionado','inversor errado','instalação sem laudo'],
+    beneficios: ['conta de luz zerada','retorno do investimento em 4 a 6 anos','valorização do imóvel'],
+    hooks: ['Quanto rende uma placa solar de 550W? Fiz o cálculo agora','Inversor errado destrói o sistema solar em 2 anos','Dimensionei um sistema solar de R$25k em 5 minutos — veja como','O erro mais caro na instalação solar que eletricista comete'],
+    hookViral: 'Cliente pediu um sistema solar. Fiz o cálculo errado e quase perdi R$15k. Veja o que aprendi',
+    hashtags: { all: '#energiasolar #solarfotovoltaico #placasolar #instaladorsolar #eletricistasolar #fotovoltaico #eletricistabrasil #solar2025', sp: '#solarSP #eletricistaSP', bh: '#solarBH #eletricistasBH', ba: '#solarBahia #eletricistaBahia', isp: '#solarCampinas', img: '#solarMG', ne: '#solarNordeste', rj: '#solarRJ' },
+    thumbPrompt: 'Painéis solares no telhado com sol forte, gráfico sobreposto mostrando conta de luz caindo para zero, texto bold "CONTA DE LUZ ZERADA", cores quentes e vibrantes',
+    ctas: { app: 'Calcula qualquer sistema solar em segundos — app no link da bio', conteudo: 'Comenta aqui a potência da sua conta e eu calculo quantas placas você precisa', afiliado: 'Link do inversor que eu confio — na bio', ferramenta: 'Multímetro que uso pra comissionar sistemas solares — link na bio' },
+    descricoes: {
+      youtube: '⚡ Sistema solar fotovoltaico do zero — dimensionamento, instalação e comissionamento completo.\n\n✅ Conteúdo:\n- Como dimensionar\n- Escolha do inversor\n- Instalação das placas\n- Conexão à rede\n- Laudo técnico\n\n#energiasolar #fotovoltaico #eletricista',
+      instagram: '⚡ Conta de luz de R$800 pra R$0!\n\nVeja como dimensionar e instalar sistema solar 👇\n\n🔗 Link na bio!\n\n#energiasolar #solar #eletricista',
+      tiktok: 'Zerando a conta de luz com energia solar ☀️⚡ #solar #fotovoltaico #eletricista #viral'
+    },
+    script: { hook: 'Um sistema solar de R$15k mal dimensionado pode durar metade do tempo esperado.', problema: 'Eletricista novo não sabe calcular strings, inversores e irradiação solar da região.', solucao: 'Com o app certo você digita o consumo mensal e a cidade — ele gera o projeto completo.', demo: 'Vou fazer ao vivo: consumo de 400kWh/mês em Salvador. Em 20 segundos o app gerou o projeto.', cta: 'Quer aprender a dimensionar do zero? Link na bio.' },
+    serie: ['Fundamentos solar','Dimensionamento','Instalação','Comissionamento','Manutenção'], sazonal: null
+  },
+
+  'dimensionamento solar': {
+    categoria: 'solar', tema: 'Dimensionamento de Sistema Solar',
+    dores: ['não sabe calcular quantas placas precisa','projeto mal dimensionado','cliente insatisfeito com a geração'],
+    beneficios: ['projeto preciso','cliente satisfeito','sem retrabalho'],
+    hooks: ['Como dimensionar sistema solar em 5 passos simples','Quantas placas precisa pra zerar conta de R$500?','O erro de dimensionamento que faz o sistema gerar menos','Dimensionamento solar pelo celular em 3 minutos'],
+    hookViral: 'Dimensionei errado e o cliente ficou insatisfeito — aprendi isso e nunca mais errei',
+    hashtags: { all: '#dimensionamentosolar #fotovoltaico #energiasolar #eletricistasolar #projetosolar #dicaeletricista #eletricistabrasil', sp: '#solarSP', bh: '#solarBH', ba: '#solarBahia', isp: '#solarCampinas', img: '#solarMG', ne: '#solarNordeste', rj: '#solarRJ' },
+    thumbPrompt: 'Calculadora solar na tela do celular com resultado de número de placas, texto bold "QUANTAS PLACAS VOCÊ PRECISA?", fundo solar',
+    ctas: { app: 'Calcula projeto solar completo no app — link na bio', conteudo: 'Salva esse vídeo — dimensionamento solar é a base de tudo', afiliado: 'Software de dimensionamento que uso — link na bio', ferramenta: 'Irradiômetro solar — link na bio' },
+    descricoes: {
+      youtube: '⚡ Como dimensionar sistema solar fotovoltaico passo a passo — sem erro.\n\n✅ Conteúdo:\n- Análise da conta de energia\n- Cálculo de potência\n- Número de placas\n- Inversor adequado\n\n#dimensionamentosolar #fotovoltaico',
+      instagram: '⚡ Dimensionamento solar em 5 passos!\n\nNunca mais vai errar o projeto 👇\n\n🔗 Link na bio!\n\n#solar #dimensionamento #eletricista',
+      tiktok: 'Como calcular quantas placas solares precisa em 3 minutos ☀️ #solar #eletricista #viral'
+    },
+    script: { hook: 'Um cliente ligou reclamando que a conta de luz não zerou depois do solar. O sistema foi mal dimensionado.', problema: 'Dimensionamento sem considerar consumo real, irradiação local e perdas do sistema.', solucao: 'Consumo mensal ÷ irradiação local ÷ eficiência do sistema = potência necessária.', demo: 'Vou fazer o cálculo ao vivo pra uma residência real.', cta: 'App de dimensionamento solar na bio — grátis.' },
+    serie: ['Análise da conta','Cálculo de potência','Escolha das placas','Escolha do inversor','Verificação final'], sazonal: null
+  },
+
+  'inversor solar': {
+    categoria: 'solar', tema: 'Inversor Solar',
+    dores: ['inversor errado pra potência','inversor desligando por sobrecarga','erro de comunicação','inversor sem monitoramento'],
+    beneficios: ['sistema funcionando na potência máxima','monitoramento em tempo real','eficiência garantida'],
+    hooks: ['Inversor solar: string, microinversor ou híbrido?','Por que o inversor desliga no horário de pico solar','Como configurar o inversor solar do zero','Inversor queimado em 2 anos — o erro de instalação'],
+    hookViral: 'Esse inversor estava gerando 40% abaixo do esperado — ninguém tinha configurado certo',
+    hashtags: { all: '#inversorsolar #fotovoltaico #energiasolar #eletricistasolar #microinversor #monitoramentosolar #dicaeletricista #eletricistabrasil', sp: '#solarSP', bh: '#solarBH', ba: '#solarBahia', isp: '#solarCampinas', img: '#solarMG', ne: '#solarNordeste', rj: '#solarRJ' },
+    thumbPrompt: 'Inversor solar moderno com display digital mostrando gráfico de geração, texto bold "CONFIGURADO ERRADO = 40% MENOS"',
+    ctas: { app: 'Dimensiona inversor solar no app — link na bio', conteudo: 'Salva esse vídeo antes de comprar qualquer inversor', afiliado: 'Inversor que recomendo — link na bio', ferramenta: 'Analisador de string solar — link na bio' },
+    descricoes: {
+      youtube: '⚡ Como escolher, instalar e configurar inversor solar — guia completo.\n\n✅ Conteúdo:\n- String vs micro vs híbrido\n- Como dimensionar\n- Instalação e configuração\n- Monitoramento\n\n#inversorsolar #fotovoltaico',
+      instagram: '⚡ Inversor mal configurado = dinheiro perdido todo dia!\n\nVeja como fazer certo 👇\n\n🔗 Link na bio!\n\n#inversor #solar #eletricista',
+      tiktok: 'Inversor solar gerando 40% menos por esse erro ☀️😱 #solar #eletricista #viral'
+    },
+    script: { hook: 'O cliente reclamou que a conta de luz não baixou depois de instalar o solar. O inversor estava mal configurado.', problema: 'Inversor sem configuração de potência máxima da string opera abaixo do potencial.', solucao: 'Configuração correta de Voc, Isc, potência de pico. Monitoramento pra acompanhar geração.', demo: 'Vou configurar um inversor ao vivo do zero.', cta: 'Salva esse vídeo. Configuração de inversor é diferencial técnico.' },
+    serie: ['Tipos de inversor','Dimensionamento','Instalação','Configuração','Monitoramento'], sazonal: null
+  },
+
+  'manutencao solar': {
+    categoria: 'solar', tema: 'Manutenção de Sistema Solar',
+    dores: ['sistema solar gerando menos com o tempo','placas sujas','conexões oxidadas','sem contrato de manutenção'],
+    beneficios: ['sistema na potência máxima','vida útil prolongada','renda recorrente com manutenção'],
+    hooks: ['Manutenção solar: como criar renda recorrente','Placa solar suja perde até 30% de geração','Checklist completo de manutenção solar preventiva','Oxidação em conector MC4 — como identificar e trocar'],
+    hookViral: 'Sistema solar perdeu 35% de geração em 2 anos — a causa que ninguém percebeu',
+    hashtags: { all: '#manutencaosolar #fotovoltaico #energiasolar #dicaeletricista #eletricistabrasil #rendaRecorrente #solar2025', sp: '#solarSP', bh: '#solarBH', ba: '#solarBahia', isp: '#solarCampinas', img: '#solarMG', ne: '#solarNordeste', rj: '#solarRJ' },
+    thumbPrompt: 'Split screen: placa solar coberta de poeira vs placa limpa, texto bold "35% DE PERDA — VOCÊ SABIA?"',
+    ctas: { app: 'Gera checklist de manutenção solar no app — link na bio', conteudo: 'Salva esse vídeo — manutenção solar é renda recorrente', afiliado: 'Kit de limpeza de placas solares — link na bio', ferramenta: 'Câmera termográfica pra manutenção solar — link na bio' },
+    descricoes: {
+      youtube: '⚡ Manutenção de sistema solar fotovoltaico — checklist completo e como cobrar.\n\n✅ Conteúdo:\n- O que verificar em cada visita\n- Como limpar placas\n- Conectores e inversores\n- Contrato de manutenção\n\n#manutencaosolar #fotovoltaico',
+      instagram: '⚡ Sistema solar sem manutenção perde até 35%!\n\nVeja o checklist 👇\n\n🔗 Link na bio!\n\n#solar #eletricista',
+      tiktok: 'Sistema solar perdendo 35% por falta de manutenção ☀️😱 #solar #eletricista #viral'
+    },
+    script: { hook: 'Fui fazer manutenção num sistema solar instalado há 2 anos. Estava gerando 35% abaixo.', problema: 'Placas sujas, conectores MC4 oxidados, inversor sem atualização.', solucao: 'Limpeza de placas, troca de conectores, atualização de firmware.', demo: 'Vou mostrar o checklist completo ao vivo.', cta: 'Manutenção solar é renda recorrente. Salva esse vídeo.' },
+    serie: ['Por que fazer manutenção','Checklist','Limpeza de placas','Conectores','Contrato'], sazonal: null
+  },
+
+  // 🏭 INDUSTRIAL
+  'spda': {
+    categoria: 'industrial', tema: 'SPDA — Para-Raios',
+    dores: ['casa sem proteção contra raio','equipamentos queimando em tempestade','seguro não cobre sem SPDA'],
+    beneficios: ['proteção completa contra descarga atmosférica','equipamentos protegidos','laudo para seguro'],
+    hooks: ['SPDA obrigatório: quando a lei exige e quando você pode cobrar mais','Como dimensionar para-raios para qualquer edificação','SPDA e DPS juntos: a proteção completa que todo imóvel precisa','Laudo de SPDA: como fazer e quanto cobrar'],
+    hookViral: 'Esse raio queimou R$40 mil em equipamentos — tinha para-raios mas sem manutenção',
+    hashtags: { all: '#SPDA #pararaios #protecaoatmosferica #eletricista #NBR5419 #raio #segurancaeletrica #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Raio dramático caindo próximo a uma edificação, fundo de tempestade escura, texto bold amarelo "SEM ISSO = TUDO QUEIMA"',
+    ctas: { app: 'Dimensiona SPDA no app — link na bio', conteudo: 'Salva esse vídeo — SPDA salva dinheiro e vidas', afiliado: 'DPS que uso junto com SPDA — link na bio', ferramenta: 'Terrômetro pra medir resistência — link na bio' },
+    descricoes: {
+      youtube: '⚡ SPDA do zero — dimensionamento, instalação e laudo técnico completo.\n\n✅ Conteúdo:\n- NBR 5419\n- Como dimensionar\n- Instalação\n- Laudo\n- Quanto cobrar\n\n#SPDA #pararaios #eletricista',
+      instagram: '⚡ Raio pode queimar TUDO em segundos!\n\nVeja como instalar proteção correta 👇\n\n🔗 Link na bio!\n\n#SPDA #pararaios #eletricista',
+      tiktok: 'Raio queimou R$40 mil com para-raios instalado 😱 O erro foi esse! #SPDA #eletricista #viral'
+    },
+    script: { hook: 'Fui chamado depois de raio queimar toda a instalação. Tinham para-raios mas sem manutenção há 10 anos.', problema: 'SPDA sem manutenção perde eficiência. Hastes corroídas, cabos soltos, aterramento com resistência alta.', solucao: 'SPDA + DPS no quadro + aterramento revisado.', demo: 'Vou mostrar o checklist completo de diagnóstico ao vivo.', cta: 'Laudo de SPDA é nova fonte de renda. Salva esse vídeo.' },
+    serie: ['O que é SPDA','Dimensionamento','Instalação','Manutenção','Laudo técnico'], sazonal: 'chuvas'
+  },
+
+  'gerador': {
+    categoria: 'industrial', tema: 'Gerador de Energia',
+    dores: ['queda de energia','transferência manual perigosa','gerador sem QTA','gerador mal dimensionado'],
+    beneficios: ['energia sem interrupção','transferência automática segura','negócio nunca para'],
+    hooks: ['QTA — quadro de transferência automática: como instalar','Gerador subdimensionado é pior do que não ter','Como fazer a transferência do gerador sem risco de choque','Manutenção preventiva de gerador — checklist completo'],
+    hookViral: 'Esse gerador deu choque no técnico porque não tinha QTA',
+    hashtags: { all: '#gerador #QTA #geradordeenergia #eletricista #transferenciadeenergia #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Gerador a diesel em funcionamento, texto bold "NUNCA MAIS FALTA ENERGIA", fundo industrial',
+    ctas: { app: 'Dimensiona gerador e QTA no app — link na bio', conteudo: 'Salva esse vídeo — QTA salva vidas', afiliado: 'Gerador que recomendo pra uso residencial — link na bio', ferramenta: 'Analisador de energia para comissionar — link na bio' },
+    descricoes: {
+      youtube: '⚡ Instalação de gerador com QTA — segurança e automação completa.\n\n✅ Conteúdo:\n- Dimensionamento\n- QTA automático\n- Instalação segura\n- Manutenção\n\n#gerador #QTA #eletricista',
+      instagram: '⚡ Gerador sem QTA é bomba-relógio!\n\nVeja como instalar seguro 👇\n\n🔗 Link na bio!\n\n#gerador #QTA #eletricista',
+      tiktok: 'Transferência de gerador sem QTA é PERIGO DE MORTE ⚡ #gerador #eletricista #viral'
+    },
+    script: { hook: 'Um técnico levou choque na transferência do gerador porque o instalador não colocou QTA.', problema: 'Transferência manual sem intertravamento permite que as duas fontes fiquem conectadas.', solucao: 'QTA com intertravamento garante que só uma fonte alimenta o barramento por vez.', demo: 'Vou mostrar o diagrama correto e a instalação do QTA ao vivo.', cta: 'Salva esse vídeo. QTA é obrigação.' },
+    serie: ['Dimensionamento','QTA manual','QTA automático','Manutenção','Comissionamento'], sazonal: null
+  },
+
+  'trifasico': {
+    categoria: 'industrial', tema: 'Instalação Trifásica',
+    dores: ['motor trifásico ligado errado','desequilíbrio de fases','falta de fase queimando motor'],
+    beneficios: ['motores funcionando corretamente','distribuição equilibrada','eficiência energética'],
+    hooks: ['Estrela vs triângulo: quando usar cada ligação em motor trifásico','Motor trifásico rodando em duas fases — o que acontece','Como medir desequilíbrio de tensão em instalação trifásica','Inversão de fases em motor — como identificar e corrigir'],
+    hookViral: 'Esse motor queimou porque estava rodando em duas fases — ninguém percebeu',
+    hashtags: { all: '#trifasico #motortrifasico #instalacaotrifasica #eletricista #dicaeletricista #eletricistabrasil #industrial', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Diagrama trifásico estrela e triângulo lado a lado, cores diferentes para cada fase, texto bold "ESTRELA vs TRIÂNGULO"',
+    ctas: { app: 'Calcula instalação trifásica no app — link na bio', conteudo: 'Salva esse vídeo — instalação trifásica errada é prejuízo certo', afiliado: 'Analisador de energia trifásico — link na bio', ferramenta: 'Relé de proteção de fase — link na bio' },
+    descricoes: {
+      youtube: '⚡ Instalação trifásica completa — do dimensionamento ao comissionamento.\n\n✅ Conteúdo:\n- Estrela vs triângulo\n- Medição de desequilíbrio\n- Proteção de motor\n- Diagnóstico de falhas\n\n#trifasico #eletricista #industrial',
+      instagram: '⚡ Motor trifásico ligado errado queima em dias!\n\n🔗 Link na bio!\n\n#trifasico #motor #eletricista',
+      tiktok: 'Motor rodando em 2 fases vai QUEIMAR 🔥 Como detectar! #trifasico #eletricista #viral'
+    },
+    script: { hook: 'Um motor de R$15 mil queimou em 3 dias porque estava rodando em duas fases.', problema: 'Sem relé de proteção de falta de fase, o motor continua tentando operar e queima.', solucao: 'Relé de proteção de fases no painel, sensor de temperatura no motor.', demo: 'Vou mostrar como fazer a medição e o que os números indicam.', cta: 'Salva esse vídeo. Proteção de motor é obrigação.' },
+    serie: ['Fundamentos trifásicos','Ligação de motores','Proteção','Medição','Diagnóstico'], sazonal: null
+  },
+
+  'banco de capacitores': {
+    categoria: 'industrial', tema: 'Banco de Capacitores',
+    dores: ['multa por fator de potência baixo','energia reativa gerando custo','não sabe dimensionar banco'],
+    beneficios: ['multa zerada','fator de potência corrigido','redução da demanda'],
+    hooks: ['Banco de capacitores: como dimensionar e instalar','Quanto economiza um banco de capacitores bem dimensionado','Fator de potência de 0.6 pra 0.95 — como fazer essa correção'],
+    hookViral: 'Instalei banco de capacitores e o cliente economizou R$2.800 na primeira fatura',
+    hashtags: { all: '#bancodecapacitores #fatorpotencia #eficienciaenergetica #eletricista #dicaeletricista #eletricistabrasil #industrial', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Banco de capacitores instalado em painel industrial, gráfico de fator de potência melhorando, texto bold "R$2.800 DE ECONOMIA NA 1ª FATURA"',
+    ctas: { app: 'Dimensiona banco de capacitores no app — link na bio', conteudo: 'Salva esse vídeo — banco de capacitores é serviço de alto valor', afiliado: 'Capacitor que uso em instalações — link na bio', ferramenta: 'Analisador de fator de potência — link na bio' },
+    descricoes: {
+      youtube: '⚡ Banco de capacitores — como dimensionar, instalar e quanto economiza.\n\n✅ Conteúdo:\n- O que é e pra que serve\n- Como calcular\n- Instalação\n- Resultados reais\n\n#bancodecapacitores #fatorpotencia',
+      instagram: '⚡ Fator de potência baixo = multa todo mês!\n\nVeja como corrigir com banco de capacitores 👇\n\n🔗 Link na bio!\n\n#capacitores #eletricista #industrial',
+      tiktok: 'Economizei R$2.800 na 1ª fatura com banco de capacitores ⚡💰 #capacitores #eletricista #viral'
+    },
+    script: { hook: 'Instalei banco de capacitores numa indústria e na primeira fatura economizaram R$2.800.', problema: 'Fator de potência baixo gera multa e aumenta demanda registrada.', solucao: 'Banco de capacitores dimensionado pela potência reativa necessária.', demo: 'Vou mostrar o cálculo e a instalação ao vivo.', cta: 'Serviço de alto valor. Salva esse vídeo.' },
+    serie: ['O que é fator de potência','Como calcular','Dimensionamento','Instalação','Resultados'], sazonal: null
+  },
+
+  // 🔧 FERRAMENTAS
+  'multimetro': {
+    categoria: 'ferramentas', tema: 'Multímetro Digital',
+    dores: ['multímetro barato dando leitura errada','não sabe usar as funções','multímetro sem True RMS'],
+    beneficios: ['diagnóstico preciso','versatilidade de medição','segurança'],
+    hooks: ['Multímetro: as 5 funções que todo eletricista precisa dominar','True RMS vs multímetro comum — quando a diferença importa','Queimou o fusível do multímetro? Como trocar','Multímetro pra eletricista: o que realmente precisa ter'],
+    hookViral: 'Esse multímetro de R$25 me deu leitura errada que quase causou acidente',
+    hashtags: { all: '#multimetro #medicaoeletrica #eletricista #TrueRMS #ferramentaseletricista #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Dois multímetros lado a lado — barato e profissional, mesma medição com resultados diferentes, texto bold "LEITURA ERRADA = ACIDENTE"',
+    ctas: { app: 'Tabela de valores de referência no app — link na bio', conteudo: 'Salva esse vídeo — multímetro certo é obrigação', afiliado: 'Multímetro True RMS que uso — link na bio', ferramenta: 'Kit completo de medição — link na bio' },
+    descricoes: {
+      youtube: '⚡ Guia completo do multímetro para eletricista.\n\n✅ Conteúdo:\n- Como usar cada função\n- True RMS\n- Medições de segurança\n- Como escolher\n\n#multimetro #eletricista',
+      instagram: '⚡ Multímetro barato dá leitura errada!\n\nVeja como escolher o certo 👇\n\n🔗 Link na bio!\n\n#multimetro #eletricista #ferramentas',
+      tiktok: 'Multímetro de R$25 deu leitura errada em 220V ⚡😱 #multimetro #eletricista #viral'
+    },
+    script: { hook: 'Medi 220V com multímetro barato e o display mostrou 198V. Em um circuito de chuveiro isso é perigoso.', problema: 'Multímetro sem True RMS erra leitura em cargas não lineares.', solucao: 'True RMS, CAT III mínimo, fusível de proteção, auto-range.', demo: 'Vou mostrar a diferença de leitura ao vivo.', cta: 'Link do multímetro que uso — na bio.' },
+    serie: ['Funções básicas','True RMS','Medições avançadas','Como escolher','Manutenção'], sazonal: null
+  },
+
+  'alicate amperimetro': {
+    categoria: 'ferramentas', tema: 'Alicate Amperímetro',
+    dores: ['medir corrente sem desligar o circuito','escolha do alicate certo','leitura errada'],
+    beneficios: ['medição sem interromper circuito','diagnóstico rápido','segurança na medição'],
+    hooks: ['Alicate amperímetro: como usar do jeito certo','Alicate certo vs alicate barato — a diferença que salva','Como medir corrente sem desligar o circuito','Leitura errada no amperímetro — os erros mais comuns'],
+    hookViral: 'Esse alicate de R$30 quase me matou em obra',
+    hashtags: { all: '#alicateamperimetro #alicatedegrampo #eletricista #ferramentaseletricista #dicaeletricista #eletricistabrasil #medicaodecorrente', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Alicate amperímetro profissional medindo corrente em cabo elétrico, display em destaque, texto bold "COMO USAR DO JEITO CERTO"',
+    ctas: { app: 'Tabela de corrente por bitola no app — link na bio', conteudo: 'Salva esse vídeo — alicate amperímetro é ferramenta essencial', afiliado: 'Alicate amperímetro que uso em todas as obras — link na bio', ferramenta: 'Kit de medição completo — link na bio' },
+    descricoes: {
+      youtube: '⚡ Como usar alicate amperímetro em instalação elétrica — guia completo.\n\n✅ Conteúdo:\n- Tipos de alicate\n- Como medir corrente\n- Leitura de resultados\n- Como escolher\n\n#alicateamperimetro #eletricista',
+      instagram: '⚡ Alicate amperímetro barato pode te matar!\n\nVeja a diferença 👇\n\n🔗 Link na bio!\n\n#alicate #eletricista #ferramentas',
+      tiktok: 'Alicate de R$30 vs profissional ⚡😱 #eletricista #ferramentas #viral'
+    },
+    script: { hook: 'Fui medir corrente com alicate de R$30 em quadro de 200A. O resultado foi errado e perigoso.', problema: 'Alicate sem categoria CAT III pode falhar em surtos e causar arco elétrico.', solucao: 'Alicate CAT III mínimo para residencial. CAT IV para industrial. True RMS pra cargas não lineares.', demo: 'Vou mostrar a diferença de leitura entre barato e profissional.', cta: 'Link do alicate que uso — na bio.' },
+    serie: ['Tipos de alicate','Como usar','Como escolher','Manutenção','Kit de ferramentas'], sazonal: null
+  },
+
+  'detector de tensao': {
+    categoria: 'ferramentas', tema: 'Detector de Tensão',
+    dores: ['tocar em fio sem saber se tem tensão','detector falso positivo','sem bateria na hora errada'],
+    beneficios: ['segurança total antes de tocar','detecção sem contato','ferramenta que salva vidas'],
+    hooks: ['Detector de tensão: a ferramenta que salva vidas e custa menos de R$50','Detector falso positivo — como identificar','Antes de tocar em qualquer fio, faça isso','O eletricista que não usa detector está apostando a vida'],
+    hookViral: 'Esse eletricista tocou no fio sem detector — veja o que aconteceu',
+    hashtags: { all: '#detectorderTensao #segurancaeletrica #eletricista #EPI #NR10 #dicaeletricista #eletricistabrasil #prevencaodeacidentes', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Detector de tensão próximo a fio elétrico com luz vermelha e alarme ativado, texto bold "NUNCA TOQUE SEM VERIFICAR"',
+    ctas: { app: 'Checklist de segurança no app — link na bio', conteudo: 'Salva e manda pra quem não usa detector', afiliado: 'Detector de tensão que uso todo dia — link na bio', ferramenta: 'Kit de segurança completo — link na bio' },
+    descricoes: {
+      youtube: '⚡ Detector de tensão — como usar e por que é obrigatório.\n\n✅ Conteúdo:\n- Tipos\n- Como usar\n- Falsos positivos\n- Como escolher\n\n#detectorderTensao #eletricista',
+      instagram: '⚡ Antes de tocar em QUALQUER fio, faça isso!\n\n🔗 Link na bio!\n\n#detector #eletricista #seguranca',
+      tiktok: 'Nunca toque em fio sem isso ⚡🚨 Salva vidas! #detector #eletricista #viral'
+    },
+    script: { hook: 'Um eletricista levou choque porque tocou num fio que "deveria estar desligado".', problema: 'Disjuntor desligado não garante ausência de tensão.', solucao: 'Detector de tensão sem contato antes de tocar em qualquer fio. Sempre.', demo: 'Vou mostrar situações onde o disjuntor está desligado mas ainda tem tensão.', cta: 'Link do detector — na bio. Menos de R$60. Vale a vida.' },
+    serie: ['Por que usar','Como usar','Tipos','Como escolher','Kit completo'], sazonal: null
+  },
+
+  'parafusadeira': {
+    categoria: 'ferramentas', tema: 'Parafusadeira / Furadeira',
+    dores: ['parafusadeira sem torque ajustável','ferramenta pesada','bateria acabando na obra'],
+    beneficios: ['instalação mais rápida','sem dano nas caixas plásticas','economia de tempo'],
+    hooks: ['A parafusadeira certa faz diferença — veja qual uso','Como usar parafusadeira sem danificar os fios','Furadeira vs parafusadeira de impacto: qual usar','Essa ferramenta economiza 1 hora por dia de instalação'],
+    hookViral: 'Trabalhei 3 anos com parafusadeira errada e perdia 2 horas por obra',
+    hashtags: { all: '#parafusadeira #furadeira #ferramentaseletricista #eletricista #dicaeletricista #eletricistabrasil #produtividade', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Parafusadeira profissional com torque ajustável, eletricista segurando com confiança, texto bold "2 HORAS A MAIS POR OBRA"',
+    ctas: { app: 'App pra calcular o serviço — ferramenta pra executar. Links na bio', conteudo: 'Qual parafusadeira você usa? Comenta', afiliado: 'Parafusadeira que uso em todas as obras — link na bio', ferramenta: 'Kit completo que recomendo — link na bio' },
+    descricoes: {
+      youtube: '⚡ Parafusadeira para eletricista — como escolher e usar corretamente.\n\n✅ Conteúdo:\n- Tipos\n- Como escolher\n- Uso em instalação\n- Minha recomendação\n\n#parafusadeira #eletricista',
+      instagram: '⚡ Parafusadeira errada = 2 horas perdidas por obra!\n\nVeja qual usar 👇\n\n🔗 Link na bio!\n\n#parafusadeira #ferramentas #eletricista',
+      tiktok: 'Perdia 2h por obra com parafusadeira errada 😤 Mudou! #parafusadeira #eletricista #viral'
+    },
+    script: { hook: 'Eu perdia quase 2 horas por obra usando a parafusadeira errada.', problema: 'Sem torque ajustável danifica caixas e afunda parafusos.', solucao: 'Parafusadeira com torque regulável de pelo menos 30Nm.', demo: 'Vou mostrar ao vivo a diferença na instalação de tomada.', cta: 'Link da ferramenta que uso — na bio.' },
+    serie: ['Tipos','Como escolher','Como usar','Acessórios','Kit completo'], sazonal: null
+  },
+
+  // 📋 GESTÃO
+  'orcamento': {
+    categoria: 'gestao', tema: 'Orçamento Elétrico',
+    dores: ['cobrar barato demais','orçamento de cabeça sem cálculo','cliente não aceita orçamento','perder dinheiro em serviço'],
+    beneficios: ['orçamento profissional em PDF','precificação correta','cliente confiante no valor'],
+    hooks: ['Quanto cobrar por ponto elétrico? A tabela que eu uso','Eletricista que não sabe orçar perde dinheiro todo serviço','Como fazer orçamento elétrico profissional em PDF pelo celular','Você cobra por ponto, hora ou m²? A resposta certa'],
+    hookViral: 'Dei orçamento de R$1.200 num serviço que valia R$3.500. Aprendi do jeito mais caro',
+    hashtags: { all: '#orcamentoeletrico #precificacao #eletricista #dicaeletricista #eletricistabrasil #comocobrarcerto #orçamentoprofissional', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Celular mostrando PDF de orçamento elétrico profissional com logo, valor destacado em verde, texto bold "DE R$1.200 PRA R$3.500"',
+    ctas: { app: 'Gera orçamento em PDF profissional em 2 min — app no link da bio', conteudo: 'Manda esse vídeo pra eletricista que cobra barato demais', afiliado: 'Planilha de orçamento completa — link na bio', ferramenta: 'App de orçamento — link na bio' },
+    descricoes: {
+      youtube: '⚡ Como fazer orçamento elétrico profissional e nunca mais perder dinheiro.\n\n✅ Conteúdo:\n- Como calcular custo real\n- Tabela de preços\n- Como gerar PDF\n- Como apresentar\n\n#orcamento #eletricista #gestao',
+      instagram: '⚡ Ainda faz orçamento de cabeça?\n\nEsse método te faz cobrar o valor certo em 2 minutos 👇\n\n🔗 Link na bio!\n\n#orcamento #eletricista #precificacao',
+      tiktok: 'Dei orçamento errado e perdi R$2.300 💸 Aprendi isso e nunca mais! #orcamento #eletricista #viral'
+    },
+    script: { hook: 'Se você dá orçamento de cabeça, você tá perdendo dinheiro em todo serviço.', problema: 'Eletricista autônomo não calcula custo real de mão de obra + material + deslocamento.', solucao: 'Com app de orçamento você coloca os serviços, calcula total com margem, gera PDF profissional.', demo: 'Vou fazer ao vivo: 8 pontos em apartamento. Em 90 segundos orçamento pronto.', cta: 'App na bio. Seu próximo orçamento vai ser 3x mais profissional.' },
+    serie: ['Como precificar','Tabela de serviços','Orçamento em PDF','Como apresentar','Negociação'], sazonal: null
+  },
+
+  'mei eletricista': {
+    categoria: 'gestao', tema: 'MEI para Eletricista',
+    dores: ['trabalhando sem nota fiscal','perdendo obra por não ter CNPJ','não sabe o que MEI cobre'],
+    beneficios: ['nota fiscal para obras maiores','CNPJ pra fechar contrato','benefícios do INSS'],
+    hooks: ['MEI eletricista: o que pode e o que não pode','Como abrir MEI em 5 minutos e emitir nota fiscal hoje','Perdeu obra porque não tinha CNPJ? Nunca mais','MEI vs ME: qual o melhor pra eletricista autônomo'],
+    hookViral: 'Perdi contrato de R$15k porque não tinha CNPJ. Abri MEI no dia seguinte',
+    hashtags: { all: '#MEI #eletricistaMEI #CNPJ #eletricista #notafiscal #eletricistaauto #empreendedorismo #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Tela de celular mostrando CNPJ recém criado, eletricista sorrindo ao fundo, texto bold "ABRI MEI EM 5 MINUTOS"',
+    ctas: { app: 'Gera nota fiscal pelo app — link na bio', conteudo: 'Manda esse vídeo pra eletricista sem CNPJ', afiliado: 'Planilha financeira pra MEI — link na bio', ferramenta: 'App de gestão financeira — link na bio' },
+    descricoes: {
+      youtube: '⚡ MEI para eletricista — como abrir, o que fazer e como emitir nota fiscal.\n\n✅ Conteúdo:\n- O que é MEI\n- Como abrir\n- Nota fiscal\n- Benefícios e limitações\n\n#MEI #eletricista #CNPJ',
+      instagram: '⚡ Ainda trabalha sem CNPJ?\n\nAbre MEI hoje e começa a fechar contratos maiores 👇\n\n🔗 Link na bio!\n\n#MEI #eletricista #CNPJ',
+      tiktok: 'Abri MEI em 5 minutos e fechei R$15k no mesmo mês 💚 #MEI #eletricista #viral'
+    },
+    script: { hook: 'Perdi um contrato de R$15k porque não tinha CNPJ.', problema: 'Sem MEI não emite nota, não fecha com empresa, não tem INSS.', solucao: 'MEI abre pelo Portal do Empreendedor em 5 minutos. R$67/mês.', demo: 'Vou abrir um MEI ao vivo — você vê cada passo.', cta: 'Manda esse vídeo pra eletricista sem CNPJ.' },
+    serie: ['O que é MEI','Como abrir','Nota fiscal','Impostos','MEI vs ME'], sazonal: null
+  },
+
+  'captacao de clientes': {
+    categoria: 'gestao', tema: 'Captação de Clientes para Eletricista',
+    dores: ['sem clientes novos','depende só de indicação','não aparece no Google','não usa redes sociais'],
+    beneficios: ['agenda cheia todo mês','clientes chegando sem indicar','presença digital profissional'],
+    hooks: ['Como eletricista autônomo lotou a agenda em 30 dias','Google Meu Negócio para eletricista: configure em 10 minutos','WhatsApp Business pra eletricista: como usar direito','3 formas de conseguir cliente novo essa semana sem gastar nada'],
+    hookViral: 'Fiz 1 vídeo no Instagram e recebi 47 mensagens de clientes em 2 dias',
+    hashtags: { all: '#captacaodeclientes #eletricista #marketingparaeletricista #googlemeunegocio #dicaeletricista #eletricistabrasil #clientesnovos', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Celular mostrando 47 notificações de mensagem no WhatsApp, texto bold "1 VÍDEO = 47 CLIENTES"',
+    ctas: { app: 'Gerencia clientes e agenda no app — link na bio', conteudo: 'Salva esse vídeo — estratégia de cliente que funciona', afiliado: 'Curso de marketing digital pra eletricista — link na bio', ferramenta: 'App de gestão de clientes — link na bio' },
+    descricoes: {
+      youtube: '⚡ Como conseguir clientes como eletricista autônomo — estratégias que funcionam.\n\n✅ Conteúdo:\n- Google Meu Negócio\n- WhatsApp Business\n- Instagram e TikTok\n- Indicação estruturada\n\n#captacaodeclientes #eletricista',
+      instagram: '⚡ Agenda vazia?\n\nEssas 3 estratégias enchem em 30 dias sem gastar nada 👇\n\n🔗 Link na bio!\n\n#clientes #eletricista #marketing',
+      tiktok: '47 clientes em 2 dias com 1 vídeo 😱 Como! #eletricista #clientes #viral'
+    },
+    script: { hook: 'Postei 1 vídeo de 60 segundos no Instagram e recebi 47 mensagens de clientes em 2 dias.', problema: 'Eletricista depende 100% de indicação. Quando para, para o dinheiro.', solucao: 'Google Meu Negócio + 1 vídeo por semana + WhatsApp Business.', demo: 'Vou mostrar cada ferramenta ao vivo.', cta: 'Salva esse vídeo. Sua agenda cheia começa aqui.' },
+    serie: ['Google Meu Negócio','WhatsApp Business','Instagram','TikTok','Indicação estruturada'], sazonal: null
+  },
+
+  'contrato eletrico': {
+    categoria: 'gestao', tema: 'Contrato de Serviço Elétrico',
+    dores: ['cliente não paga depois do serviço','sem garantia definida','reclamação sem contrato'],
+    beneficios: ['proteção jurídica','pagamento garantido','garantia clara'],
+    hooks: ['Contrato de serviço elétrico: modelo completo que uso em toda obra','Como cobrar entrada antes de começar — e o cliente aceitar','Garantia de serviço elétrico: quanto tempo você é obrigado a dar','Cliente não pagou depois da obra — o que fazer'],
+    hookViral: 'Fiz obra de R$8k sem contrato. O cliente sumiu. Aprendi do jeito mais caro',
+    hashtags: { all: '#contratodeservico #eletricista #garantiaeletrica #dicaeletricista #eletricistabrasil #juridico #protecaoletricista', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Contrato de serviço elétrico sendo assinado digitalmente no celular, texto bold "NUNCA MAIS TRABALHA SEM ISSO"',
+    ctas: { app: 'Modelo de contrato no app — link na bio', conteudo: 'Manda pra eletricista que trabalha no fio do bigode', afiliado: 'Modelo de contrato editável — link na bio', ferramenta: 'App de assinatura digital — link na bio' },
+    descricoes: {
+      youtube: '⚡ Contrato de serviço elétrico — modelo completo e como usar.\n\n✅ Conteúdo:\n- O que incluir\n- Como cobrar entrada\n- Garantia\n- Assinatura digital\n\n#contrato #eletricista',
+      instagram: '⚡ Já perdeu dinheiro por falta de contrato?\n\nVeja o modelo que uso 👇\n\n🔗 Link na bio!\n\n#contrato #eletricista',
+      tiktok: 'Perdi R$8k por não usar contrato 💸 Nunca mais! #contrato #eletricista #viral'
+    },
+    script: { hook: 'Fiz reforma de R$8k sem assinar nada. O cliente sumiu.', problema: 'Sem contrato você não tem como provar valor, garantia, prazo de pagamento.', solucao: 'Contrato com valor, forma de pagamento, prazo, escopo e garantia. Assina pelo WhatsApp.', demo: 'Vou mostrar o modelo completo.', cta: 'Link do modelo na bio. Nunca mais trabalha sem documento.' },
+    serie: ['Por que usar contrato','Modelo completo','Como apresentar','Assinatura digital','O que fazer se não pagar'], sazonal: null
+  },
+
+  // 🛡 SEGURANÇA
+  'nr10': {
+    categoria: 'seguranca', tema: 'NR-10 e Segurança Elétrica',
+    dores: ['trabalhar sem NR-10','acidente elétrico','fiscalização sem certificado','EPI errado'],
+    beneficios: ['trabalho seguro dentro da norma','certificação válida','proteção legal'],
+    hooks: ['NR-10 na prática: o que o eletricista realmente precisa saber em campo','Trabalhar sem NR-10 atualizado pode te custar a carteira','Checklist de segurança que uso antes de qualquer instalação','79 mortes elétricas em 2024. O que você pode fazer pra não ser mais um'],
+    hookViral: 'Esse eletricista quase morreu por pular uma etapa do checklist',
+    hashtags: { all: '#NR10 #segurancaeletrica #eletricista #EPI #trabalhoseguro #normaregulamentadora #dicaeletricista #eletricistabrasil #checklist', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Eletricista com EPI completo — capacete, luvas isolantes, óculos — fundo vermelho de alerta, texto bold "NR-10 NA PRÁTICA"',
+    ctas: { app: 'Checklist NR-10 completo no celular — baixa grátis no link da bio', conteudo: 'Manda esse vídeo pra eletricista que não usa EPI', afiliado: 'EPI que uso em todas as obras — link na bio', ferramenta: 'Detector de tensão que salva vidas — link na bio' },
+    descricoes: {
+      youtube: '⚡ NR-10 na prática — o que todo eletricista precisa saber.\n\n✅ Conteúdo:\n- O que é NR-10\n- Certificação obrigatória\n- EPI correto\n- Checklist\n- Emergência elétrica\n\n#NR10 #segurancaeletrica #eletricista',
+      instagram: '⚡ 79 mortes elétricas em 2024!\n\nVeja o checklist que faço antes de toda instalação 👇\n\n🔗 Link na bio!\n\n#NR10 #seguranca #eletricista',
+      tiktok: 'Esse checklist pode salvar sua vida ⚡🛡 Salva! #NR10 #eletricista #viral'
+    },
+    script: { hook: 'Um eletricista morreu semana passada por pular uma etapa simples de segurança.', problema: 'A maioria não tem checklist. Confia na memória e na pressa. Isso mata.', solucao: 'Verificar ausência de tensão, sinalizar área, usar EPI correto, registrar.', demo: 'Abre o checklist NR-10, marca cada item. No final gera o PDF do registro.', cta: 'Baixa o checklist grátis no link da bio.' },
+    serie: ['O que é NR-10','Certificação','EPI correto','Checklist','Emergência elétrica'], sazonal: null
+  },
+
+  'nr35': {
+    categoria: 'seguranca', tema: 'NR-35 — Trabalho em Altura',
+    dores: ['trabalhar em altura sem treinamento','sem cinto de segurança','fiscalização em trabalho em altura'],
+    beneficios: ['trabalho seguro em altura','certificação','proteção contra quedas'],
+    hooks: ['NR-35 na prática: o que eletricista precisa saber','Cinto de segurança certo pra cada trabalho em altura','Queda de altura mata mais que choque elétrico','Checklist antes de subir em qualquer altura'],
+    hookViral: 'Esse eletricista caiu de 4 metros por não usar o EPI certo',
+    hashtags: { all: '#NR35 #trabalhoEmAltura #segurancaeletrica #eletricista #EPI #cintodeSeguranca #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Eletricista em altura com EPI completo — cinto, talabarte e capacete, texto bold "NR-35 — OBRIGATÓRIO"',
+    ctas: { app: 'Checklist NR-35 no app — link na bio', conteudo: 'Manda pra quem trabalha em altura sem EPI', afiliado: 'Cinto de segurança que uso — link na bio', ferramenta: 'Kit EPI para trabalho em altura — link na bio' },
+    descricoes: {
+      youtube: '⚡ NR-35 para eletricista — trabalho em altura seguro.\n\n✅ Conteúdo:\n- O que exige a NR-35\n- EPI obrigatório\n- Tipos de cinto\n- Checklist\n\n#NR35 #trabalhoEmAltura #eletricista',
+      instagram: '⚡ Subir sem EPI de altura é CRIME!\n\nVeja o checklist completo 👇\n\n🔗 Link na bio!\n\n#NR35 #eletricista #seguranca',
+      tiktok: 'Queda de 4 metros por falta de cinto ⚡😱 #NR35 #eletricista #viral'
+    },
+    script: { hook: 'A maioria das mortes em obra não é por choque — é por queda de altura.', problema: 'Trabalho acima de 2 metros exige NR-35, cinto e ponto de ancoragem.', solucao: 'Treinamento NR-35, cinto tipo paraquedista, talabarte duplo, ancoragem certificada.', demo: 'Vou mostrar o checklist de segurança em altura ao vivo.', cta: 'Salva esse vídeo. Queda mata — EPI protege.' },
+    serie: ['NR-35 básico','EPI de altura','Andaimes','Ancoragem','Checklist'], sazonal: null
+  },
+
+  'dps': {
+    categoria: 'seguranca', tema: 'DPS — Protetor de Surto',
+    dores: ['equipamentos queimando em raio','surto destruindo TV e geladeira','DPS instalado errado'],
+    beneficios: ['equipamentos protegidos contra surto','proteção complementar ao SPDA','instalação simples'],
+    hooks: ['DPS: por que é obrigatório e onde instalar no quadro','Raio queimou a TV do cliente? Provavelmente o DPS estava errado','DPS classe 1, 2 e 3: qual usar em cada ponto','Como instalar DPS no quadro — passo a passo'],
+    hookViral: 'Raio caiu longe e queimou R$12k em equipamentos — DPS estava instalado mas errado',
+    hashtags: { all: '#DPS #protetordesurto #SPDA #eletricista #protecaoeletrica #NBR5410 #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'DPS instalado no quadro com raio representado ao fundo, texto bold "OBRIGATÓRIO POR NBR — INSTALE AGORA"',
+    ctas: { app: 'Dimensiona DPS no app — link na bio', conteudo: 'Salva esse vídeo — DPS é diferencial e nova fonte de renda', afiliado: 'DPS que instalo em toda obra — link na bio', ferramenta: 'Testador de DPS — link na bio' },
+    descricoes: {
+      youtube: '⚡ DPS — protetor de surto: como instalar e quando é obrigatório.\n\n✅ Conteúdo:\n- O que é DPS\n- Classes 1, 2 e 3\n- Como instalar\n- Quando trocar\n\n#DPS #protetordesurto #eletricista',
+      instagram: '⚡ Sem DPS os equipamentos do cliente estão expostos!\n\nVeja como instalar 👇\n\n🔗 Link na bio!\n\n#DPS #eletricista #protecao',
+      tiktok: 'Raio queimou R$12k com DPS instalado — erro foi esse ⚡😱 #DPS #eletricista #viral'
+    },
+    script: { hook: 'Fui chamado após raio queimar TV, geladeira e ar. O cliente tinha DPS — mas instalado errado.', problema: 'DPS sem aterramento adequado não desvia o surto.', solucao: 'DPS classe 2 no quadro principal, aterramento medido abaixo de 10 ohms.', demo: 'Vou mostrar a instalação correta ao vivo.', cta: 'Oferecer DPS em toda instalação é nova fonte de renda.' },
+    serie: ['O que é DPS','Classes','Instalação','Aterramento','Manutenção'], sazonal: 'chuvas'
+  },
+
+  'laudo eletrico': {
+    categoria: 'seguranca', tema: 'Laudo Elétrico',
+    dores: ['imóvel sem laudo pra venda','não sabe fazer laudo','não tem ART'],
+    beneficios: ['nova fonte de renda','serviço de alta margem','exigência crescente'],
+    hooks: ['Laudo elétrico: como fazer e quanto cobrar — R$800 a R$3.000','Como fazer laudo elétrico sem ser engenheiro','ART e laudo elétrico: qual a diferença','Checklist de laudo elétrico residencial'],
+    hookViral: 'Fiz 3 laudos elétricos em uma semana e faturei R$6.000',
+    hashtags: { all: '#laudoeletrico #ART #vistoaeletrica #eletricista #dicaeletricista #eletricistabrasil #laudotecnico #NBR5410', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Eletricista com tablet fazendo vistoria elétrica em quadro, texto bold "R$6.000 EM 3 LAUDOS"',
+    ctas: { app: 'Gera laudo elétrico no app — link na bio', conteudo: 'Salva esse vídeo — laudo é diferencial e renda alta', afiliado: 'Modelo de laudo editável — link na bio', ferramenta: 'App de laudo elétrico — link na bio' },
+    descricoes: {
+      youtube: '⚡ Como fazer laudo elétrico e faturar de R$800 a R$3.000 por visita.\n\n✅ Conteúdo:\n- O que é laudo\n- Quem pode fazer\n- Checklist\n- Como cobrar\n\n#laudoeletrico #eletricista',
+      instagram: '⚡ Laudo elétrico = R$800 a R$3.000 por visita!\n\nVeja como começar 👇\n\n🔗 Link na bio!\n\n#laudoeletrico #eletricista',
+      tiktok: 'Fiz R$6.000 em 3 laudos elétricos em 1 semana 💰⚡ #laudoeletrico #eletricista #viral'
+    },
+    script: { hook: 'Fiz 3 laudos elétricos em uma semana e faturei R$6.000.', problema: 'Eletricista não conhece esse serviço ou acha que precisa de engenheiro.', solucao: 'Vistoria com checklist baseado na NBR 5410, documento técnico, laudo em PDF.', demo: 'Vou mostrar o checklist completo ao vivo.', cta: 'Modelo de laudo na bio. Nova fonte de renda hoje.' },
+    serie: ['O que é laudo','Quem pode fazer','Checklist','Como cobrar','Modelo'], sazonal: null
+  },
+
+  'epi eletricista': {
+    categoria: 'seguranca', tema: 'EPI para Eletricista',
+    dores: ['trabalhar sem EPI','acidente por falta de proteção','EPI errado pra tensão'],
+    beneficios: ['proteção completa em campo','conformidade com NR-10','profissionalismo'],
+    hooks: ['EPI completo para eletricista — o que é obrigatório e o que é dispensável','Luvas isolantes: como escolher a classe certa','Óculos de proteção em instalação elétrica — quando usar','Kit EPI completo que monto antes de qualquer serviço'],
+    hookViral: 'Esse eletricista perdeu a visão porque não usou óculos de proteção em uma faísca',
+    hashtags: { all: '#EPI #equipamentodeprotecao #eletricista #NR10 #segurancaeletrica #dicaeletricista #eletricistabrasil #luvasisolantes', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Kit EPI de eletricista organizado: luvas isolantes, óculos, capacete, botina, texto bold "EPI OBRIGATÓRIO — CHECKLIST COMPLETO"',
+    ctas: { app: 'Checklist de EPI no app — link na bio', conteudo: 'Salva esse vídeo — EPI salva vidas', afiliado: 'Kit EPI que uso — link na bio', ferramenta: 'Luvas isolantes classe 0 — link na bio' },
+    descricoes: {
+      youtube: '⚡ EPI completo para eletricista — o que usar em cada tipo de serviço.\n\n✅ Conteúdo:\n- EPI obrigatório NR-10\n- Como escolher luvas\n- Capacete\n- Botina\n- Custo do kit\n\n#EPI #eletricista #seguranca',
+      instagram: '⚡ EPI não é opção — é obrigação!\n\nVeja o kit completo 👇\n\n🔗 Link na bio!\n\n#EPI #eletricista #NR10 #seguranca',
+      tiktok: 'O EPI que todo eletricista precisa usar ⚡🛡 #EPI #eletricista #NR10 #viral'
+    },
+    script: { hook: 'Um eletricista perdeu a visão porque não usou óculos de proteção quando uma faísca saltou.', problema: 'EPI é obrigação por NR-10 — e a maioria usa o errado ou não usa.', solucao: 'Luvas isolantes classe correta, óculos incolor, capacete com isolamento, botina com bico de aço.', demo: 'Vou mostrar o kit completo que monto antes de qualquer serviço.', cta: 'Link do kit EPI na bio. Vida não tem preço.' },
+    serie: ['EPI obrigatório','Luvas isolantes','Capacete e óculos','Botina','Kit completo'], sazonal: null
+  },
+
+  // 💡 ILUMINAÇÃO
+  'iluminacao led': {
+    categoria: 'iluminacao', tema: 'Iluminação LED Residencial',
+    dores: ['conta de luz alta com iluminação','lâmpada LED queimando rápido','escolha errada de temperatura de cor'],
+    beneficios: ['economia de até 80% na iluminação','vida útil de 25.000 horas','ambiente mais agradável'],
+    hooks: ['Lâmpada LED queimando rápido? O motivo que poucos sabem','Temperatura de cor: como escolher a certa pra cada ambiente','Quanto economiza trocando toda iluminação por LED','LED de R$5 vs R$25: a diferença que você sente na conta'],
+    hookViral: 'Troquei toda iluminação de uma casa por LED e a conta caiu R$180 por mês',
+    hashtags: { all: '#iluminacaoLED #LED #economiadeLuz #eletricista #iluminacaoresidencial #dicaeletricista #eletricistabrasil #eficienciaenergetica', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Comparação de ambientes — iluminação amarela antiga vs LED branco moderno, texto bold "R$180 DE ECONOMIA POR MÊS"',
+    ctas: { app: 'Calcula iluminação e economia no app — link na bio', conteudo: 'Salva esse vídeo antes de comprar qualquer lâmpada', afiliado: 'LED de qualidade que recomendo — link na bio', ferramenta: 'Luxímetro pra projeto de iluminação — link na bio' },
+    descricoes: {
+      youtube: '⚡ Iluminação LED residencial — como escolher, instalar e economizar.\n\n✅ Conteúdo:\n- Tipos de LED\n- Temperatura de cor\n- Como calcular\n- Quanto economiza\n\n#iluminacaoLED #eletricista #economia',
+      instagram: '⚡ Conta caiu R$180 com essa mudança!\n\nVeja como instalar LED certo 👇\n\n🔗 Link na bio!\n\n#LED #iluminacao #eletricista',
+      tiktok: 'Conta caiu R$180 com LED 💡💚 Como! #LED #iluminacao #eletricista #viral'
+    },
+    script: { hook: 'Troquei toda iluminação de uma casa por LED e a conta de luz caiu R$180 por mês.', problema: 'Maioria ainda usa lâmpada incandescente ou fluorescente. Gasta 5x mais que LED.', solucao: 'LED de qualidade, temperatura certa, projeto antes de instalar.', demo: 'Vou fazer a conta ao vivo — consumo atual vs. consumo com LED.', cta: 'Salva. Troca de iluminação é serviço fácil de vender com boa margem.' },
+    serie: ['Tipos de LED','Temperatura de cor','Projeto','Instalação','Economia e ROI'], sazonal: null
+  },
+
+  'fita led': {
+    categoria: 'iluminacao', tema: 'Fita LED',
+    dores: ['fita LED apagando em partes','fita esquentando demais','fonte inadequada','instalação sem proteção'],
+    beneficios: ['iluminação decorativa profissional','instalação simples','cliente impressionado com resultado'],
+    hooks: ['Fita LED queimando em partes? Esse é o motivo','Como instalar fita LED do jeito profissional','Fonte de fita LED: como calcular e não queimar tudo','Fita LED externa: como proteger da chuva'],
+    hookViral: 'Instalei fita LED e ficou igual loja de R$2 — aprendi isso e nunca mais aconteceu',
+    hashtags: { all: '#fitaLED #iluminacaoLED #eletricista #decoracao #dicaeletricista #eletricistabrasil #iluminacaoindireta', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Iluminação indireta com fita LED em sanca de gesso, ambiente elegante e bem iluminado, texto bold "COMO INSTALAR DO JEITO PROFISSIONAL"',
+    ctas: { app: 'Calcula fita LED e fonte no app — link na bio', conteudo: 'Salva esse vídeo — fita LED é serviço fácil e com boa margem', afiliado: 'Fita LED de qualidade que uso — link na bio', ferramenta: 'Fonte de alimentação que recomendo — link na bio' },
+    descricoes: {
+      youtube: '⚡ Como instalar fita LED profissionalmente — sem queimar, sem piscar, sem problema.\n\n✅ Conteúdo:\n- Tipos de fita\n- Cálculo da fonte\n- Instalação\n- Proteção\n\n#fitaLED #eletricista #iluminacao',
+      instagram: '⚡ Fita LED apagando em partes é erro de instalação!\n\nVeja como fazer certo 👇\n\n🔗 Link na bio!\n\n#fitaLED #LED #eletricista',
+      tiktok: 'Fita LED instalada do jeito errado fica horrível 😬 Veja como fazer certo! #fitaLED #eletricista #viral'
+    },
+    script: { hook: 'Fita LED apagando em partes não é defeito da fita — é erro de instalação.', problema: 'Fonte subdimensionada, emendas com resistência alta, fita dobrada no canto.', solucao: 'Fonte com 20% de margem, conectores de compressão nas emendas, curvas com perfil de alumínio.', demo: 'Vou instalar fita LED ao vivo com todos os detalhes profissionais.', cta: 'Fita LED é serviço de R$200 a R$800 por ambiente. Salva esse vídeo.' },
+    serie: ['Tipos de fita','Cálculo da fonte','Instalação','Emendas','Proteção externa'], sazonal: null
+  },
+
+  'sensor de presenca': {
+    categoria: 'iluminacao', tema: 'Sensor de Presença',
+    dores: ['luz ficando acesa sem ninguém','falsos positivos','instalação errada'],
+    beneficios: ['economia automática de energia','conforto e praticidade','instalação simples com boa margem'],
+    hooks: ['Sensor de presença: como instalar e nunca mais ter falso positivo','Sensor de presença vs sensor de movimento','Garagem, corredor, banheiro: onde sensor mais economiza','Sensor com dimmer: o combo que clientes amam'],
+    hookViral: 'Esse sensor ligou a luz com o gato do vizinho — veja como ajustar',
+    hashtags: { all: '#sensordepresenca #automacaoeletrica #eletricista #economiadeLuz #dicaeletricista #eletricistabrasil #iluminacaointeligente', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Sensor de presença no teto com feixe de detecção, texto bold "COMO INSTALAR SEM FALSO POSITIVO"',
+    ctas: { app: 'Planeja automação elétrica no app — link na bio', conteudo: 'Salva esse vídeo — sensor é serviço fácil de vender', afiliado: 'Sensor de presença que instalo — link na bio', ferramenta: 'Kit de instalação de sensor — link na bio' },
+    descricoes: {
+      youtube: '⚡ Como instalar sensor de presença corretamente — sem falso positivo.\n\n✅ Conteúdo:\n- Tipos\n- Como instalar\n- Como ajustar\n- Onde usar\n\n#sensordepresenca #eletricista',
+      instagram: '⚡ Sensor de presença com falso positivo toda hora?\n\nVeja como instalar certo 👇\n\n🔗 Link na bio!\n\n#sensor #eletricista #automacao',
+      tiktok: 'Sensor ligou com o gato do vizinho 😂⚡ Como ajustar! #sensor #eletricista #viral'
+    },
+    script: { hook: 'Instalei sensor na garagem e ele ligava toda vez que o carro do vizinho passava.', problema: 'Sensor mal posicionado, sensibilidade no máximo, timer errado.', solucao: 'Ângulo direcionado, sensibilidade reduzida, timer de 30 segundos, teste antes de fixar.', demo: 'Vou mostrar a instalação e ajuste ao vivo.', cta: 'Sensor é serviço de R$150 a R$400 com margem alta.' },
+    serie: ['Tipos','Instalação','Ajuste fino','Sem fio','Dimmer + sensor'], sazonal: null
+  },
+
+  'projeto de iluminacao': {
+    categoria: 'iluminacao', tema: 'Projeto de Iluminação',
+    dores: ['ambiente mal iluminado','sem projeto antes de instalar','cliente insatisfeito'],
+    beneficios: ['ambiente perfeitamente iluminado','serviço diferenciado e mais caro','cliente indicando'],
+    hooks: ['Projeto de iluminação: como cobrar mais caro','Cálculo de lux por ambiente — o eletricista não aprende na escola','Como fazer projeto de iluminação pelo celular em 15 minutos','Iluminação indireta: como instalar e por que clientes pagam mais'],
+    hookViral: 'Cobrei R$2.500 só pelo projeto de iluminação — cliente quis mais 3 ambientes',
+    hashtags: { all: '#projetoIluminacao #iluminacaoarquitetural #eletricista #iluminacaoresidencial #dicaeletricista #eletricistabrasil #LED #lux', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Split screen: sala com 1 lâmpada feia vs mesma sala com projeto de iluminação sofisticado, texto bold "ANTES vs DEPOIS — R$2.500 DE DIFERENÇA"',
+    ctas: { app: 'Faz projeto de iluminação no app — link na bio', conteudo: 'Salva esse vídeo — projeto é upgrade de renda', afiliado: 'Luminária de trilho que uso em projetos — link na bio', ferramenta: 'App de projeto de iluminação — link na bio' },
+    descricoes: {
+      youtube: '⚡ Como fazer projeto de iluminação e cobrar mais pelo trabalho.\n\n✅ Conteúdo:\n- Cálculo de lux\n- Temperatura de cor\n- Posicionamento\n- Iluminação indireta\n- Como cobrar\n\n#projetoIluminacao #eletricista',
+      instagram: '⚡ Cobrei R$2.500 só pelo projeto de iluminação!\n\nVeja como 👇\n\n🔗 Link na bio!\n\n#iluminacao #projeto #eletricista',
+      tiktok: 'De 1 lâmpada pra projeto completo — cliente não acreditou 😍💡 #iluminacao #eletricista #viral'
+    },
+    script: { hook: 'Cobrei R$2.500 só para fazer o projeto de iluminação de uma sala.', problema: 'A maioria coloca lâmpada onde tem ponto sem calcular lux ou temperatura.', solucao: '300 lux pra sala, 500 lux pra cozinha, luz direta + indireta, 3000K pra descanso.', demo: 'Vou fazer projeto completo ao vivo pra sala de 20m².', cta: 'Projeto é diferencial. Salva esse vídeo.' },
+    serie: ['Conceitos','Cálculo de lux','Temperatura','Iluminação indireta','Como cobrar'], sazonal: null
+  },
+
+  // 🚪 AUTOMAÇÃO
+  'portao eletronico': {
+    categoria: 'automacao', tema: 'Portão Eletrônico',
+    dores: ['portão travando','motor queimando','instalação elétrica errada','controle sem alcance'],
+    beneficios: ['portão funcionando sem falhas','automação completa','segurança melhorada'],
+    hooks: ['Portão eletrônico travando toda hora? O erro de instalação','Motor de portão queimado — a causa elétrica que ninguém verifica','Como instalar portão eletrônico do zero','Controle de portão sem alcance — como ampliar'],
+    hookViral: 'Esse portão travou com o cliente dentro do carro — o erro elétrico que causou',
+    hashtags: { all: '#portaoeletronico #automacaoresidencial #eletricista #motordeportao #dicaeletricista #eletricistabrasil #portaoautomatico', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Motor de portão eletrônico sendo instalado, texto bold "DO ZERO EM 1 HORA"',
+    ctas: { app: 'Planejamento de automação no app — link na bio', conteudo: 'Salva esse vídeo — portão é serviço recorrente', afiliado: 'Motor de portão que confio — link na bio', ferramenta: 'Kit de instalação de portão — link na bio' },
+    descricoes: {
+      youtube: '⚡ Instalação de portão eletrônico do zero — elétrica, mecânica e configuração.\n\n✅ Conteúdo:\n- Tipos de motor\n- Instalação elétrica\n- Configuração\n- Manutenção\n\n#portaoeletronico #eletricista',
+      instagram: '⚡ Portão travando toda hora?\n\nEsse erro elétrico é a causa 👇\n\n🔗 Link na bio!\n\n#portao #automacao #eletricista',
+      tiktok: 'Portão travou com cliente dentro do carro ⚡😱 Veja como evitar! #portao #eletricista #viral'
+    },
+    script: { hook: 'Portão travou com o carro do cliente dentro da garagem. Motor no circuito errado.', problema: 'Motor de portão precisa de circuito independente, disjuntor, aterramento e DPS.', solucao: 'Circuito exclusivo, disjuntor 16A, aterramento, DPS na tomada.', demo: 'Vou mostrar a instalação elétrica completa ao vivo.', cta: 'Instalação de portão = R$300 a R$800 com manutenção recorrente.' },
+    serie: ['Tipos de portão','Instalação elétrica','Instalação mecânica','Configuração','Manutenção'], sazonal: null
+  },
+
+  'camera de seguranca': {
+    categoria: 'automacao', tema: 'Câmera de Segurança',
+    dores: ['câmera sem imagem à noite','câmera offline','cabeamento mal feito','câmera sem proteção externa'],
+    beneficios: ['monitoramento 24h','imagem clara dia e noite','acesso pelo celular'],
+    hooks: ['Câmera de segurança: como instalar e configurar do zero','Câmera offline toda hora — esse é o motivo elétrico','IP66 ou IP67: qual câmera usar em área externa','CFTV vs IP: qual instalar em cada situação'],
+    hookViral: 'Câmera de segurança sem imagem na hora do assalto — o erro de instalação que causou',
+    hashtags: { all: '#cameraseguranca #CFTV #instalacaodecameras #eletricista #dicaeletricista #eletricistabrasil #monitoramento', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Câmera de segurança sendo instalada em canto de parede externa, cabeamento organizado, texto bold "DO ZERO EM 45 MINUTOS"',
+    ctas: { app: 'Planeja instalação de câmeras no app — link na bio', conteudo: 'Salva esse vídeo — câmeras é serviço complementar de boa margem', afiliado: 'Câmera IP que instalo e confio — link na bio', ferramenta: 'Kit de instalação de câmeras — link na bio' },
+    descricoes: {
+      youtube: '⚡ Como instalar câmera de segurança do zero — cabeamento, configuração e acesso remoto.\n\n✅ Conteúdo:\n- CFTV vs IP\n- Cabeamento\n- Instalação física\n- Configuração\n- Acesso pelo celular\n\n#cameraseguranca #eletricista',
+      instagram: '⚡ Câmera offline na hora do assalto?\n\nEsse erro de instalação causou 👇\n\n🔗 Link na bio!\n\n#camera #seguranca #eletricista',
+      tiktok: 'Câmera sem imagem na hora do assalto 😱 Erro de instalação evitável! #camera #eletricista #viral'
+    },
+    script: { hook: 'Câmera de segurança ficou offline na hora exata em que o assalto aconteceu.', problema: 'Câmera alimentada pelo mesmo circuito da tomada — quando o ladrão desligou a energia, a câmera foi junto.', solucao: 'Câmera com PoE em circuito dedicado com nobreak, ou câmera com bateria interna.', demo: 'Vou mostrar a instalação correta com circuito dedicado.', cta: 'Câmeras é serviço complementar com boa margem. Salva esse vídeo.' },
+    serie: ['CFTV vs IP','Cabeamento','Instalação física','Configuração','Nobreak para câmeras'], sazonal: null
+  },
+
+  // 🏠 CASA INTELIGENTE
+  'automacao residencial': {
+    categoria: 'casainteligente', tema: 'Automação Residencial',
+    dores: ['não sabe por onde começar','medo de instalação complexa','custo alto'],
+    beneficios: ['casa moderna','controle pelo celular','economia automática'],
+    hooks: ['Automação residencial: como começar do zero com menos de R$500','Casa inteligente em apartamento alugado — sem obra','Como integrar Alexa, Google e Apple HomeKit','Eletricista que oferece automação cobra 3x mais'],
+    hookViral: 'Automatizei minha casa inteira por R$800 e nunca mais paguei conta cara',
+    hashtags: { all: '#automacaoresidencial #casainteligente #smarthome #eletricista #IoT #Alexa #GoogleHome #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP #smarthomeSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Celular controlando luzes e ar simultaneamente, casa iluminada ao fundo, texto bold "CASA INTELIGENTE POR R$800"',
+    ctas: { app: 'Planejamento de automação no app — link na bio', conteudo: 'Salva esse vídeo — automação é o futuro', afiliado: 'Kit de automação que uso — link na bio', ferramenta: 'Hub de automação que recomendo — link na bio' },
+    descricoes: {
+      youtube: '⚡ Automação residencial do zero — como começar, o que comprar e como instalar.\n\n✅ Conteúdo:\n- Por onde começar\n- Principais dispositivos\n- Integração com assistentes\n- Custo\n\n#automacaoresidencial #smarthome',
+      instagram: '⚡ Casa inteligente por R$800?\n\nVeja como automatizar do zero 👇\n\n🔗 Link na bio!\n\n#automacao #smarthome #eletricista',
+      tiktok: 'Automatizei tudo por R$800 e conta caiu 40% 🏠⚡ #automacao #smarthome #viral'
+    },
+    script: { hook: 'Automatizei minha casa inteira por R$800 e nunca mais deixei luz acesa sem querer.', problema: 'Maioria acha que automação é coisa de rico.', solucao: 'Interruptores inteligentes, tomadas smart, sensor WiFi, tudo integrado com Alexa.', demo: 'Vou mostrar cada dispositivo e como instalar.', cta: 'Eletricista que oferece automação cobra mais e fideliza. Salva.' },
+    serie: ['Por onde começar','Iluminação inteligente','Tomadas e plugues','Sensores','Integração total'], sazonal: null
+  },
+
+  // ⚙️ COMANDOS
+  'contator rele': {
+    categoria: 'comandos', tema: 'Contator e Relé de Controle',
+    dores: ['contator queimando','bobina errada de tensão','relé de sobrecarga desajustado'],
+    beneficios: ['painel funcionando corretamente','proteção de motores','domínio de comandos'],
+    hooks: ['Contator queimando sempre? O erro de especificação','Diagrama de comando elétrico: como ler e montar do zero','Relé de sobrecarga: como ajustar','Contato auxiliar NA vs NF: quando usar'],
+    hookViral: 'Esse painel de comando custou R$5k e parou em 3 dias — o contator estava errado',
+    hashtags: { all: '#contator #rele #comandoseletricos #eletricista #paineldecomando #NBR5410 #dicaeletricista #eletricistabrasil #industrial', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Painel de controle aberto mostrando contactores organizados, texto bold "DIAGRAMA DE COMANDO DO ZERO"',
+    ctas: { app: 'Dimensiona contator e relé no app — link na bio', conteudo: 'Salva esse vídeo — comandos é diferencial técnico', afiliado: 'Contator que uso em painéis — link na bio', ferramenta: 'Multímetro pra diagnóstico — link na bio' },
+    descricoes: {
+      youtube: '⚡ Contator e relé — como especificar, instalar e diagrama do zero.\n\n✅ Conteúdo:\n- Como escolher contator\n- Bobina e tensão\n- Relé de sobrecarga\n- Diagrama\n\n#contator #rele #eletricista',
+      instagram: '⚡ Contator errado para o painel em dias!\n\nVeja como especificar 👇\n\n🔗 Link na bio!\n\n#contator #rele #industrial',
+      tiktok: 'Contator errado parou painel de R$5k em 3 dias ⚡😱 #contator #eletricista #viral'
+    },
+    script: { hook: 'Painel de R$5k parou em 3 dias porque o contator estava subdimensionado.', problema: 'Contator especificado pela tensão sem olhar corrente e categoria de utilização.', solucao: 'Corrente nominal 25% acima do motor, categoria AC-3, bobina na tensão correta.', demo: 'Vou mostrar especificação e diagrama ao vivo.', cta: 'Domínio de comandos = serviços mais caros.' },
+    serie: ['Tipos de contator','Como especificar','Diagrama','Relé de sobrecarga','Painel completo'], sazonal: null
+  },
+
+  'clp programacao': {
+    categoria: 'comandos', tema: 'CLP — Controlador Lógico Programável',
+    dores: ['não sabe programar CLP','automação industrial sem CLP','custo de automação com CLP'],
+    beneficios: ['automação industrial completa','diferencial técnico premium','projetos de alto valor'],
+    hooks: ['CLP: o que é e por que todo eletricista industrial precisa saber','Primeira programação de CLP — guia para iniciantes','CLP vs relés temporizadores: quando trocar','Como cobrar por projeto com CLP'],
+    hookViral: 'Aprendi CLP em 30 dias e o próximo projeto foi 3x mais caro',
+    hashtags: { all: '#CLP #automacaoindustrial #eletricista #programacaoCLP #PLCprogramming #dicaeletricista #eletricistabrasil #industria40', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'CLP industrial com tela de programação em ladder, eletricista programando, texto bold "CLP DO ZERO — SEU PRÓXIMO NÍVEL"',
+    ctas: { app: 'Planejamento de automação industrial no app — link na bio', conteudo: 'Salva esse vídeo — CLP é o próximo nível', afiliado: 'CLP que uso em projetos — link na bio', ferramenta: 'Software de programação CLP — link na bio' },
+    descricoes: {
+      youtube: '⚡ CLP — Controlador Lógico Programável — guia completo para eletricista iniciante.\n\n✅ Conteúdo:\n- O que é CLP\n- Linguagem Ladder\n- Primeira programação\n- Instalação\n- Projetos reais\n\n#CLP #automacaoindustrial',
+      instagram: '⚡ CLP é o próximo nível do eletricista industrial!\n\nVeja como começar do zero 👇\n\n🔗 Link na bio!\n\n#CLP #automacao #eletricista',
+      tiktok: 'Aprendi CLP em 30 dias e o projeto seguinte foi 3x mais caro 💰⚡ #CLP #eletricista #viral'
+    },
+    script: { hook: 'Aprendi a programar CLP em 30 dias e o próximo projeto foi 3x mais caro.', problema: 'Eletricista que não conhece CLP fica limitado a serviços básicos.', solucao: 'CLP com linguagem Ladder, software gratuito de fabricante, simulação antes de instalar.', demo: 'Vou mostrar minha primeira programação em Ladder ao vivo.', cta: 'CLP é o próximo nível. Salva esse vídeo.' },
+    serie: ['O que é CLP','Linguagem Ladder','Primeira programação','Instalação','Projeto real'], sazonal: null
+  },
+
+  // 📱 APLICATIVOS
+  'app calculo eletrico': {
+    categoria: 'aplicativos', tema: 'App de Cálculo Elétrico',
+    dores: ['fazer cálculo de cabeça','tabela de bitola sumindo','calcular errado na pressa'],
+    beneficios: ['cálculo em segundos','precisão sem tabela em papel','profissionalismo em campo'],
+    hooks: ['O app que todo eletricista precisa ter — de graça','Calcula bitola, disjuntor e carga em segundos','Chega de tabela de papel — cálculo no celular','Como eu calculo qualquer circuito em campo em 30 segundos'],
+    hookViral: 'Esse app me salvou de erro que ia custar R$2k na obra',
+    hashtags: { all: '#appeletricista #calculoeletrico #appeletrico #eletricista #dicaeletricista #eletricistabrasil #bitola #disjuntor #appgratis', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Celular mostrando app de cálculo elétrico com resultado de bitola, eletricista em obra ao fundo, texto bold "CALCULA EM 10 SEGUNDOS"',
+    ctas: { app: 'Esse é o app — baixa grátis no link da bio', conteudo: 'Salva esse vídeo — esses apps mudam sua obra', afiliado: 'Todos os apps que uso — links na bio', ferramenta: 'App que uso pra orçamento + cálculo — link na bio' },
+    descricoes: {
+      youtube: '⚡ Melhores apps de cálculo elétrico pra eletricista.\n\n✅ Conteúdo:\n- App de bitola\n- App de orçamento\n- App de laudo\n- App de checklist\n\n#appeletricista #calculoeletrico',
+      instagram: '⚡ Esses apps mudam seu trabalho!\n\nVeja os que uso todo dia 👇\n\n🔗 Links na bio!\n\n#app #eletricista #tecnologia',
+      tiktok: 'App que todo eletricista precisa 📱⚡ Salva! #app #eletricista #viral'
+    },
+    script: { hook: 'Esse app me salvou de erro que ia custar R$2k em material errado.', problema: 'Na pressa da obra você faz cálculo de cabeça e erra. Material de volta pra loja.', solucao: 'Digita potência e tensão, ele calcula bitola, corrente e disjuntor em segundos.', demo: 'Vou mostrar o app funcionando ao vivo com cálculo real.', cta: 'Link na bio. Grátis. Baixa agora.' },
+    serie: ['App de cálculo','App de orçamento','App de laudo','App de checklist','Setup completo'], sazonal: null
+  },
+
+  'app orcamento eletrico': {
+    categoria: 'aplicativos', tema: 'App de Orçamento para Eletricista',
+    dores: ['orçamento no papel','sem PDF profissional','esquecendo itens no orçamento'],
+    beneficios: ['PDF profissional em 2 minutos','todos os itens incluídos','cliente confia mais'],
+    hooks: ['Como gero orçamento elétrico em PDF em 2 minutos','App de orçamento que uso em toda obra','Eletricista que manda PDF perde menos cliente por preço','Antes: orçamento à mão. Depois: PDF profissional'],
+    hookViral: 'Mandei PDF de orçamento e cliente aceitou na hora — sem pechinchar',
+    hashtags: { all: '#apporcamento #orcamentoeletrico #appeletricista #eletricista #PDFprofissional #dicaeletricista #eletricistabrasil', sp: '#eletricistaSP', bh: '#eletricistasBH', ba: '#eletricistaBahia', isp: '#eletricistaCampinas', img: '#eletricistainteriorMG', ne: '#eletricistaNordeste', rj: '#eletristaRJ' },
+    thumbPrompt: 'Celular enviando PDF de orçamento pelo WhatsApp, documento profissional com logo, texto bold "2 MINUTOS PRA UM PDF PROFISSIONAL"',
+    ctas: { app: 'Baixa o app de orçamento — link na bio', conteudo: 'Salva esse vídeo — orçamento profissional fecha mais', afiliado: 'App de orçamento que recomendo — link na bio', ferramenta: 'Combo app orçamento + cálculo — link na bio' },
+    descricoes: {
+      youtube: '⚡ App de orçamento elétrico — como gerar PDF em 2 minutos.\n\n✅ Conteúdo:\n- Qual app usar\n- Como configurar\n- Gerar PDF\n- Enviar pro cliente\n\n#apporcamento #eletricista',
+      instagram: '⚡ Ainda manda orçamento no papel?\n\nPDF profissional em 2 minutos 👇\n\n🔗 Link na bio!\n\n#orcamento #PDF #eletricista',
+      tiktok: 'Orçamento em PDF em 2 min e cliente aceitou na hora 💼⚡ #orcamento #eletricista #viral'
+    },
+    script: { hook: 'Mandei PDF de orçamento e o cliente aceitou sem pechinchar. Antes eu mandava áudio no WhatsApp.', problema: 'Orçamento de boca passa insegurança. Cliente sempre tenta baixar o preço.', solucao: 'PDF com logo, lista de serviços, valor e prazo. Em 2 minutos no app.', demo: 'Vou gerar um orçamento ao vivo — do zero até o PDF.', cta: 'Link na bio. PDF profissional em 2 minutos.' },
+    serie: ['Por que usar app','Como configurar','Gerando PDF','Enviando pro cliente','Acompanhamento'], sazonal: null
+  },
+
+};
+
+// ============================================================
+// REGRA 5: LÓGICA — camada separada
+// ============================================================
+
+const DB = {
+  links: JSON.parse(localStorage.getItem('vc_links') || 'null') || [
+    { id: 1, icon: '📱', name: 'Meu App', url: 'https://seuapp.com' },
+    { id: 2, icon: '🎬', name: 'YouTube', url: 'https://youtube.com/@seucanal' },
+    { id: 3, icon: '📸', name: 'Instagram', url: 'https://instagram.com/seuperfil' },
+    { id: 4, icon: '🎵', name: 'TikTok', url: 'https://tiktok.com/@seuperfil' },
+  ],
+  contents: JSON.parse(localStorage.getItem('vc_contents') || '[]'),
+  editingContent: null,
+  selectedRegion: 'all',
+  selectedRegionTab: 'sp',
+  selectedObj: 'conteudo'
+};
+
+function save() {
+  localStorage.setItem('vc_links', JSON.stringify(DB.links));
+  localStorage.setItem('vc_contents', JSON.stringify(DB.contents));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function copyText(text, msg) {
+  navigator.clipboard.writeText(text).then(() => showToast(msg || 'Copiado!')).catch(() => {
+    const el = document.createElement('textarea');
+    el.value = text;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast(msg || 'Copiado!');
+  });
+}
+
+function switchTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+  if (id === 'conteudos') renderDB();
+  if (id === 'links') renderLinksFull();
+}
+
+function selectRegion(r, el) {
+  document.querySelectorAll('#regionBtns .region-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  DB.selectedRegion = r;
+}
+
+function selectRegionTab(r, el) {
+  document.querySelectorAll('#regionTabBtns .region-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  DB.selectedRegionTab = r;
+  renderRegionInfo();
+}
+
+function selectObj(o, el) {
+  document.querySelectorAll('[id^=obj-]').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  DB.selectedObj = o;
+}
+
+function findKB(query) {
+  const q = query.toLowerCase().trim();
+  // Busca exata por chave
+  for (const [key, val] of Object.entries(KB)) {
+    if (q === key || q.includes(key) || key.includes(q)) return { key, ...val };
+  }
+  // Busca por tema
+  for (const [key, val] of Object.entries(KB)) {
+    if (val.tema && val.tema.toLowerCase().includes(q)) return { key, ...val };
+  }
+  // Busca por categoria
+  for (const [key, val] of Object.entries(KB)) {
+    if (val.categoria && val.categoria.toLowerCase().includes(q)) return { key, ...val };
+  }
+  // Conteúdo customizado
+  const custom = DB.contents.find(c =>
+    q.includes(c.key.toLowerCase()) || c.key.toLowerCase().includes(q)
+  );
+  if (custom) return { custom: true, ...custom };
+  return null;
+}
+
+function buscar() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) return;
+  const data = findKB(q);
+  const area = document.getElementById('resultArea');
+  if (!data) {
+    area.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Conteúdo não encontrado</div><div class="empty-sub">Tente: chuveiro, solar, nr10, disjuntor, orcamento...</div><button class="btn-add-content" style="margin-top:1rem" onclick="openAddContent()">+ Adicionar "${q}"</button></div>`;
+    return;
+  }
+  if (data.custom) { renderCustom(data, area, DB.selectedObj); return; }
+  renderResult(data, area, DB.selectedRegion, DB.selectedObj);
+}
+
+function buscarRegiao() {
+  const q = document.getElementById('regionSearch').value.trim();
+  if (!q) return;
+  const data = findKB(q);
+  const area = document.getElementById('regionResult');
+  if (!data) {
+    area.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Assunto não encontrado</div><div class="empty-sub">Tente outra palavra ou adicione em "Meus Conteúdos".</div></div>`;
+    return;
+  }
+  if (data.custom) { renderCustom(data, area, 'conteudo'); return; }
+  renderResult(data, area, DB.selectedRegionTab, 'conteudo');
+}
+
+function buildHashtags(data, region) {
+  let tags = data.hashtags.all || '';
+  if (region && region !== 'all') {
+    if (data.hashtags[region]) tags += ' ' + data.hashtags[region];
+    if (REGION_DATA[region]) tags += ' ' + REGION_DATA[region].hashtags;
+  }
+  return [...new Set(tags.split(' ').filter(Boolean))].join(' ');
+}
+
+// Store global: evita texto bruto em atributos onclick
+window._vc = [];
+function vcStore(text) { window._vc.push(String(text || '')); return window._vc.length - 1; }
+function vcCopy(i, msg) { copyText(window._vc[i] || '', msg || 'Copiado!'); }
+
+function renderResult(data, area, region, obj) {
+  window._vc = [];
+  var rd  = (region && region !== 'all') ? REGION_DATA[region] : null;
+  var allHash = buildHashtags(data, region);
+  var cta = (data.ctas && data.ctas[obj]) ? data.ctas[obj] : (data.ctas ? data.ctas['conteudo'] : '');
+
+  var iHookViral = vcStore(data.hookViral);
+  var iHooksAll  = vcStore((data.hooks || []).join('\n'));
+  var iHooks     = (data.hooks || []).map(function(h){ return vcStore(h); });
+  var iCta       = vcStore(cta);
+  var iHash      = vcStore(allHash);
+  var iThumb     = vcStore(data.thumbPrompt);
+  var iTags      = allHash.split(' ').map(function(t){ return vcStore(t); });
+
+  var sazonalBadge = data.sazonal ? ('<span class="result-sazonal">🗓 ' + (data.sazonal === 'verao' ? 'Sazonal: Verão' : data.sazonal === 'chuvas' ? 'Sazonal: Chuvas' : data.sazonal) + '</span>') : '';
+  var objLabel = obj === 'app' ? '📱 App' : obj === 'afiliado' ? '🛒 Afiliado' : obj === 'ferramenta' ? '🔧 Ferramenta' : '🎬 Conteúdo';
+
+  var html = '<div class="result-header">'
+    + '<span class="result-tag">⚡ ' + (data.tema || '') + '</span>'
+    + (rd ? '<span class="result-region-tag">📍 ' + rd.emoji + ' ' + rd.label + '</span>' : '')
+    + '<span style="color:var(--muted);font-size:11px">' + objLabel + '</span>'
+    + sazonalBadge + '</div>';
+
+  html += '<div class="result-full"><div class="card">'
+    + '<div class="card-head">🎣 Hook viral <button class="copy-all" onclick="vcCopy(' + iHookViral + ',\'Hook viral copiado!\')">copiar</button></div>'
+    + '<div class="hook-item viral" onclick="vcCopy(' + iHookViral + ')">' + (data.hookViral || '') + '</div>'
+    + '</div></div>';
+
+  var hooksHtml = (data.hooks || []).map(function(h, i) {
+    return '<div class="hook-item" onclick="vcCopy(' + iHooks[i] + ',\'Hook copiado!\')">' + h + '</div>';
+  }).join('');
+
+  var scriptHtml = '<div class="script-box">'
+    + (data.script ? (
+        '<div class="script-part"><span class="sp-label">Hook (0–5s)</span>' + data.script.hook + '</div>'
+      + '<div class="script-part"><span class="sp-label">Problema (5–15s)</span>' + data.script.problema + '</div>'
+      + '<div class="script-part"><span class="sp-label">Solução (15–40s)</span>' + data.script.solucao + '</div>')
+      : '')
+    + '<div class="script-part"><span class="sp-label">CTA final</span>' + (cta || '') + '</div>'
+    + '</div>';
+
+  html += '<div class="result-grid">'
+    + '<div class="card"><div class="card-head">🎣 Hooks alternativos <button class="copy-all" onclick="vcCopy(' + iHooksAll + ',\'Hooks copiados!\')">copiar todos</button></div><div class="hook-list">' + hooksHtml + '</div></div>'
+    + '<div class="card"><div class="card-head">🎬 Roteiro</div>' + scriptHtml + '</div>'
+    + '</div>';
+
+  var tagsHtml = allHash.split(' ').map(function(t, i) {
+    return '<span onclick="vcCopy(' + iTags[i] + ',\'Hashtag copiada!\')">' + t + '</span>';
+  }).join('');
+
+  var doresBenHtml = '';
+  if (data.dores && data.dores.length) {
+    doresBenHtml += '<div style="margin-top:10px"><div class="card-head" style="margin-bottom:6px">😣 Dores do público</div><div class="db-pills">'
+      + data.dores.map(function(d){ return '<div class="dor-pill">❌ ' + d + '</div>'; }).join('') + '</div></div>';
+    doresBenHtml += '<div style="margin-top:8px"><div class="card-head" style="margin-bottom:6px">✅ Benefícios</div><div class="db-pills">'
+      + (data.beneficios || []).map(function(b){ return '<div class="ben-pill">✅ ' + b + '</div>'; }).join('') + '</div></div>';
+  }
+
+  html += '<div class="result-grid">'
+    + '<div class="card"><div class="card-head">#️⃣ Hashtags <button class="copy-all" onclick="vcCopy(' + iHash + ',\'Hashtags copiadas!\')">copiar</button></div><div class="hashtag-box">' + tagsHtml + '</div></div>'
+    + '<div class="card"><div class="card-head">🖼 Prompt de thumbnail <button class="copy-all" onclick="vcCopy(' + iThumb + ',\'Prompt copiado!\')">copiar</button></div><div class="thumb-prompt" onclick="vcCopy(' + iThumb + ')">' + (data.thumbPrompt || '—') + '</div>' + doresBenHtml + '</div>'
+    + '</div>';
+
+  html += '<div class="result-full"><div class="card">'
+    + '<div class="card-head">📢 CTA — objetivo: <strong style="color:var(--accent)">' + obj + '</strong> <button class="copy-all" onclick="vcCopy(' + iCta + ',\'CTA copiado!\')">copiar</button></div>'
+    + '<div class="hook-item viral" onclick="vcCopy(' + iCta + ')">' + (cta || '') + '</div>'
+    + (obj === 'app' ? '<div style="margin-top:10px"><div class="card-head" style="margin-bottom:8px">Links do app</div><div id="appLinks"></div></div>' : '')
+    + '</div></div>';
+
+  if (data.descricoes) {
+    html += '<div class="result-full"><div class="card">'
+      + '<div class="card-head">📝 Descrições por plataforma</div>'
+      + '<div class="plat-tabs">'
+      + '<button class="plat-tab active" onclick="switchPlat(\'yt\',this)">▶ YouTube</button>'
+      + '<button class="plat-tab" onclick="switchPlat(\'ig\',this)">📸 Instagram</button>'
+      + '<button class="plat-tab" onclick="switchPlat(\'tt\',this)">🎵 TikTok</button>'
+      + '</div>'
+      + '<div class="plat-content active" id="plat-yt"><button class="copy-all" style="margin-bottom:8px" onclick="copyText(document.getElementById(\'desc-yt\').innerText,\'Descrição YT copiada!\')">copiar</button><div class="descricao-box" id="desc-yt">' + (data.descricoes.youtube || '') + '</div></div>'
+      + '<div class="plat-content" id="plat-ig"><button class="copy-all" style="margin-bottom:8px" onclick="copyText(document.getElementById(\'desc-ig\').innerText,\'Descrição IG copiada!\')">copiar</button><div class="descricao-box" id="desc-ig">' + (data.descricoes.instagram || '') + '</div></div>'
+      + '<div class="plat-content" id="plat-tt"><button class="copy-all" style="margin-bottom:8px" onclick="copyText(document.getElementById(\'desc-tt\').innerText,\'Descrição TT copiada!\')">copiar</button><div class="descricao-box" id="desc-tt">' + (data.descricoes.tiktok || '') + '</div></div>'
+      + '</div></div>';
+  }
+
+  if (data.serie && data.serie.length) {
+    html += '<div class="result-full"><div class="card">'
+      + '<div class="card-head">📺 Série de vídeos sugerida</div>'
+      + '<div class="serie-list">' + data.serie.map(function(s,i){ return '<span class="serie-pill">' + (i+1) + '. ' + s + '</span>'; }).join('') + '</div>'
+      + '</div></div>';
+  }
+
+  if (rd) {
+    html += '<div class="result-full"><div class="card">'
+      + '<div class="card-head">📍 Dica para ' + rd.emoji + ' ' + rd.label + '</div>'
+      + '<div class="region-info"><strong>Dor principal:</strong> ' + rd.dor + '<br><strong>Perfil:</strong> ' + rd.perfil + '<br><strong>Oportunidade:</strong> ' + rd.oportunidade + '</div>'
+      + '</div></div>';
+  }
+
+  area.innerHTML = html;
+  if (obj === 'app') renderAppLinks();
+}
+
+function switchPlat(id, el) {
+  document.querySelectorAll('.plat-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.plat-content').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('plat-' + id).classList.add('active');
+}
+
+function renderCustom(data, area, obj) {
+  window._vc = [];
+  var iHooksAll = vcStore(data.hooks || '');
+  var iHash     = vcStore(data.hashtags || '');
+  var iCta      = vcStore(data.cta || '');
+  var hooksHtml = (data.hooks || '').split('\n').filter(Boolean).map(function(h) {
+    var idx = vcStore(h);
+    return '<div class="hook-item" onclick="vcCopy(' + idx + ')">' + h + '</div>';
+  }).join('');
+  var tagsHtml = (data.hashtags || '').split(' ').filter(Boolean).map(function(t) {
+    var idx = vcStore(t);
+    return '<span onclick="vcCopy(' + idx + ')">' + t + '</span>';
+  }).join('');
+
+  area.innerHTML = '<div class="result-header"><span class="result-tag">📂 ' + (data.key || '') + '</span></div>'
+    + '<div class="result-full"><div class="card">'
+    + '<div class="card-head">🎣 Hooks <button class="copy-all" onclick="vcCopy(' + iHooksAll + ',\'Copiado!\')">copiar</button></div>'
+    + '<div class="hook-list">' + hooksHtml + '</div>'
+    + '</div></div>'
+    + '<div class="result-grid">'
+    + '<div class="card"><div class="card-head">#️⃣ Hashtags <button class="copy-all" onclick="vcCopy(' + iHash + ',\'Copiado!\')">copiar</button></div><div class="hashtag-box">' + tagsHtml + '</div></div>'
+    + '<div class="card"><div class="card-head">🖼 Thumbnail</div><div class="hook-item">' + (data.thumb || '—') + '</div></div>'
+    + '</div>'
+    + '<div class="result-full"><div class="card">'
+    + '<div class="card-head">📢 CTA <button class="copy-all" onclick="vcCopy(' + iCta + ',\'Copiado!\')">copiar</button></div>'
+    + '<div class="hook-item viral" onclick="vcCopy(' + iCta + ')">' + (data.cta || '—') + '</div>'
+    + '</div></div>';
+}
+
+function renderAppLinks() {
+  const el = document.getElementById('appLinks');
+  if (!el) return;
+  el.innerHTML = DB.links.map(l => `<div class="app-badge" onclick="copyText('${l.url}','Link copiado!')">${l.icon} ${l.name}</div>`).join('');
+}
+
+function renderRegionInfo() {
+  const rd = REGION_DATA[DB.selectedRegionTab];
+  const el = document.getElementById('regionInfoBox');
+  if (!el || !rd) return;
+  el.innerHTML = `<div class="region-info"><strong>${rd.emoji} ${rd.label}</strong><br>🎯 ${rd.dor}<br>👤 ${rd.perfil}<br>💡 ${rd.oportunidade}</div>`;
+}
+
+// ========== LINKS ==========
+function renderSidebarLinks() {
+  const el = document.getElementById('sidebarLinks');
+  const hd = document.getElementById('headerLinks');
+  if (!el) return;
+  el.innerHTML = DB.links.map(l => `
+    <div class="link-item">
+      <span class="link-icon">${l.icon}</span>
+      <span class="link-name">${l.name}</span>
+      <button class="link-copy" onclick="copyText('${l.url}','Link copiado!')">copiar</button>
+    </div>`).join('') + `<button class="add-link-btn" onclick="openAddLink()">+ Adicionar link</button>`;
+  if (hd) hd.innerHTML = DB.links.map(l => `<a class="link-pill" href="${l.url}" target="_blank">${l.icon} ${l.name}</a>`).join('') + `<button class="link-pill editar" onclick="switchTab('links', document.querySelectorAll('.tab')[3])">editar links</button>`;
+}
+
+function renderLinksFull() {
+  const el = document.getElementById('linksList');
+  if (!el) return;
+  if (DB.links.length === 0) { el.innerHTML = '<div style="color:var(--muted);font-size:13px">Nenhum link ainda.</div>'; return; }
+  el.innerHTML = DB.links.map((l, i) => `
+    <div class="link-item">
+      <span class="link-icon">${l.icon}</span>
+      <span class="link-name">${l.name} — <span style="color:var(--muted)">${l.url}</span></span>
+      <button class="link-copy" onclick="copyText('${l.url}','Link copiado!')">copiar</button>
+      <button class="btn-del" onclick="deleteLink(${i})">✕</button>
+    </div>`).join('');
+}
+
+function openAddLink() { document.getElementById('modalLink').classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function saveLink() {
+  const name = document.getElementById('linkName').value.trim();
+  const icon = document.getElementById('linkIcon').value.trim() || '🔗';
+  const url = document.getElementById('linkUrl').value.trim();
+  if (!name || !url) return showToast('Preencha nome e URL');
+  DB.links.push({ id: Date.now(), icon, name, url });
+  save(); renderSidebarLinks(); renderLinksFull();
+  closeModal('modalLink');
+  ['linkName','linkIcon','linkUrl'].forEach(id => document.getElementById(id).value = '');
+  showToast('Link salvo!');
+}
+
+function deleteLink(i) {
+  DB.links.splice(i, 1);
+  save(); renderSidebarLinks(); renderLinksFull();
+}
+
+// ========== DB CONTEÚDOS ==========
+let currentCat = 'all';
+
+const CAT_LABELS = {
+  all: '⚡ Todos', instalacoes: '🔌 Instalações', solar: '🌞 Solar',
+  industrial: '🏭 Industrial', ferramentas: '🔧 Ferramentas', gestao: '📋 Gestão',
+  seguranca: '🛡 Segurança', iluminacao: '💡 Iluminação', automacao: '🚪 Automação',
+  casainteligente: '🏠 Smart Home', comandos: '⚙️ Comandos', aplicativos: '📱 Apps'
+};
+
+function renderDB() {
+  const filterEl = document.getElementById('catFilter');
+  const el = document.getElementById('dbList');
+  if (!filterEl || !el) return;
+
+  filterEl.innerHTML = Object.entries(CAT_LABELS).map(([k,v]) =>
+    `<button class="cat-btn ${currentCat === k ? 'active' : ''}" onclick="setCat('${k}',this)">${v}</button>`
+  ).join('');
+
+  const builtIn = Object.entries(KB)
+    .filter(([k,v]) => currentCat === 'all' || v.categoria === currentCat)
+    .map(([k, v]) => ({ key: k, tema: v.tema, categoria: v.categoria, builtin: true }));
+  const custom = DB.contents.filter(c => currentCat === 'all');
+  const all = [...builtIn, ...custom];
+
+  el.innerHTML = all.length === 0
+    ? '<div style="color:var(--muted);font-size:13px">Nenhum conteúdo nesta categoria.</div>'
+    : all.map((c, i) => `
+    <div class="db-item">
+      <div class="db-item-name">${c.builtin ? '⚡' : '📂'} <strong>${c.key}</strong> — <span style="color:var(--muted);font-size:12px">${c.tema || c.key}</span> <span class="db-item-cat">${c.categoria ? '['+c.categoria+']' : ''}</span> ${c.builtin ? '<span style="font-size:10px;color:var(--muted)">(padrão)</span>' : ''}</div>
+      <div class="db-item-actions">
+        <button class="btn-edit" onclick="preencherBusca('${c.key}')">buscar</button>
+        ${!c.builtin ? `<button class="btn-edit" onclick="editContent(${i - builtIn.length})">editar</button><button class="btn-del" onclick="deleteContent(${i - builtIn.length})">✕</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function setCat(cat, el) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderDB();
+}
+
+function preencherBusca(key) {
+  switchTab('busca', document.querySelectorAll('.tab')[0]);
+  document.getElementById('searchInput').value = key;
+  setTimeout(() => buscar(), 50);
+}
+
+function openAddContent() {
+  DB.editingContent = null;
+  document.getElementById('modalContentTitle').textContent = 'Adicionar conteúdo personalizado';
+  ['contentKey','contentHooks','contentHashtags','contentThumb','contentCTA'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('modalContent').classList.add('open');
+}
+
+function editContent(i) {
+  DB.editingContent = i;
+  const c = DB.contents[i];
+  document.getElementById('modalContentTitle').textContent = 'Editar conteúdo';
+  document.getElementById('contentKey').value = c.key;
+  document.getElementById('contentHooks').value = c.hooks;
+  document.getElementById('contentHashtags').value = c.hashtags;
+  document.getElementById('contentThumb').value = c.thumb;
+  document.getElementById('contentCTA').value = c.cta;
+  document.getElementById('modalContent').classList.add('open');
+}
+
+function saveContent() {
+  const obj = {
+    key: document.getElementById('contentKey').value.trim(),
+    hooks: document.getElementById('contentHooks').value.trim(),
+    hashtags: document.getElementById('contentHashtags').value.trim(),
+    thumb: document.getElementById('contentThumb').value.trim(),
+    cta: document.getElementById('contentCTA').value.trim(),
+  };
+  if (!obj.key) return showToast('Digite a palavra-chave');
+  if (DB.editingContent !== null) DB.contents[DB.editingContent] = obj;
+  else DB.contents.push(obj);
+  save(); renderDB();
+  closeModal('modalContent');
+  showToast('Conteúdo salvo!');
+}
+
+function deleteContent(i) {
+  DB.contents.splice(i, 1);
+  save(); renderDB();
+}
+
+// ========== SUGESTÕES RÁPIDAS ==========
+function renderSugestoes() {
+  const picks = ['chuveiro','solar','nr10','disjuntor','orcamento','laudo eletrico','fita led','portao eletronico','clp programacao','contrato eletrico'];
+  const el = document.getElementById('sugestoesRapidas');
+  if (!el) return;
+  el.innerHTML = picks.map(k => `<span class="sug-pill" onclick="document.getElementById('searchInput').value='${k}';buscar()">⚡ ${k}</span>`).join('');
+}
+
+// ========== INIT ==========
+renderSidebarLinks();
+renderSugestoes();
+renderRegionInfo();
+</script>
+</body>
+</html>
