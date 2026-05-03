@@ -218,6 +218,42 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 .hitem-hist-title{font-size:13px;font-weight:600;margin-bottom:2px}
 .hitem-hist-sub{font-size:11px;color:var(--text3)}
 
+/* TENDÊNCIAS */
+.trends-panel{flex-direction:column;overflow-y:auto;padding:20px;gap:14px}
+.trends-panel::-webkit-scrollbar{width:4px}
+.trends-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.trend-alert{background:rgba(240,180,41,.08);border:1px solid rgba(240,180,41,.25);border-radius:10px;padding:12px 15px;font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:4px}
+.trend-alert strong{color:var(--accent)}
+.trend-subtabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.trend-stab{background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 14px;border-radius:20px;cursor:pointer;transition:all .2s}
+.trend-stab:hover{border-color:var(--accent);color:var(--text)}
+.trend-stab.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+.trend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.tcard-trend{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:15px;transition:border-color .2s}
+.tcard-trend:hover{border-color:rgba(240,180,41,.4)}
+.tcard-trend-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.tcard-trend-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;line-height:1.3;flex:1}
+.tbadge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px;white-space:nowrap;flex-shrink:0}
+.tbadge.critico{background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.4);color:#ff6b6b}
+.tbadge.alto{background:rgba(230,126,34,.15);border:1px solid rgba(230,126,34,.4);color:#ffa040}
+.tbadge.medio{background:rgba(52,152,219,.15);border:1px solid rgba(52,152,219,.4);color:#60b8ff}
+.tbadge.viral{background:rgba(74,240,160,.15);border:1px solid rgba(74,240,160,.4);color:#4af0a0}
+.tcard-trend-body{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px}
+.tcard-trend-body strong{color:var(--text)}
+.tcard-trend-plats{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.tplat{font-size:11px;background:var(--bg3);border:1px solid var(--border);padding:2px 8px;border-radius:8px;color:var(--text3)}
+.tcard-trend-btn{width:100%;background:rgba(240,180,41,.1);border:1px solid rgba(240,180,41,.25);color:var(--accent);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:7px;border-radius:7px;cursor:pointer;transition:all .2s}
+.tcard-trend-btn:hover{background:rgba(240,180,41,.2)}
+.plat-strategy{display:flex;flex-direction:column;gap:10px}
+.pstrat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.pstrat-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pstrat-icon{font-size:24px}
+.pstrat-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.pstrat-sub{font-size:12px;color:var(--text3)}
+.pstrat-body{font-size:13px;color:var(--text2);line-height:1.6}
+.pstrat-body strong{color:var(--text)}
+.hashtag-region{margin-bottom:14px}
+.hashtag-region h4{font-size:13px;font-weight:600;margin-bottom:8px;color:var(--accent)}
 /* TOAST */
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--accent);color:#000;font-weight:600;padding:9px 18px;border-radius:18px;font-size:13px;transition:transform .3s;z-index:2000;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
@@ -233,6 +269,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
     <button class="tb" onclick="showPanel('content')" id="tab-content">📂 Conteúdos</button>
     <button class="tb" onclick="showPanel('links')" id="tab-links">🔗 Links</button>
     <button class="tb" onclick="showPanel('calendar')" id="tab-calendar">📅 Calendário</button>
+    <button class="tb" onclick="showPanel('trends')" id="tab-trends">📊 Tendências</button>
     <button class="tb" onclick="toggleHistory()" style="margin-left:4px">🕐</button>
   </div>
 </div>
@@ -313,6 +350,21 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
     </div>
   </div>
   <div class="cgrid7" id="cal-grid"></div>
+</div>
+
+<!-- TRENDS PANEL -->
+<div class="panel trends-panel" id="panel-trends">
+  <div class="trend-alert">
+    ⚠️ <strong>Transparência:</strong> Os dados abaixo são baseados em pesquisas públicas, dados da Abracopel, grupos de eletricistas e padrões observados nas plataformas. Use como referência estratégica.
+  </div>
+  <div class="trend-subtabs" id="trend-subtabs">
+    <button class="trend-stab active" onclick="showTrendTab('viral',this)">🔥 O que viraliza</button>
+    <button class="trend-stab" onclick="showTrendTab('problemas',this)">💬 Problemas comentados</button>
+    <button class="trend-stab" onclick="showTrendTab('plataformas',this)">📱 Por plataforma</button>
+    <button class="trend-stab" onclick="showTrendTab('hashtags',this)">#️⃣ Hashtags em alta</button>
+    <button class="trend-stab" onclick="showTrendTab('estrategia',this)">🎯 Estratégia</button>
+  </div>
+  <div id="trend-content"></div>
 </div>
 
 </div><!-- main -->
@@ -2825,6 +2877,7 @@ function showPanel(id){
   if(id==='content') renderContents();
   if(id==='links') renderLinks();
   if(id==='calendar') renderCalendar();
+  if(id==='trends'){ const first=document.querySelector('.trend-stab'); if(first) showTrendTab('viral',first); }
 }
 
 // ============================================================
@@ -3797,6 +3850,118 @@ function init(){
 <p>Tenho <strong>${Object.keys(KB).length} assuntos</strong> no banco + ${DB.contents.length} dos seus conteúdos personalizados!</p>`);
 }
 document.addEventListener('DOMContentLoaded', init);
+
+// ============================================================
+// DADOS DE TENDÊNCIAS
+// ============================================================
+const TRENDS = {
+  viral: [
+    {title:'Incêndios elétricos cresceram 102% em 5 anos',badge:'critico',body:'<strong>1.304 incêndios de origem elétrica em 2025</strong> (Abracopel). Posts com esse número geram compartilhamento imediato. Instalações inadequadas lideram com 706 ocorrências e 33 mortes.',plats:['Instagram','Facebook','YouTube'],topic:'incendio eletrico'},
+    {title:'Aterramento ausente ou feito errado',badge:'critico',body:'<strong>71% das residências brasileiras não têm aterramento correto</strong> (Abracopel). Eletricistas debatem como explicar ao cliente a necessidade. Conteúdo educativo sobre isso sempre viraliza.',plats:['Facebook grupos','YouTube comments'],topic:'aterramento'},
+    {title:'Benjamin e extensão sobrecarregados',badge:'alto',body:'Prática universal nos lares brasileiros. Conteúdo sobre perigos de benjamins viraliza porque <strong>todo mundo já fez isso</strong>. Gatilho de culpa + aprendizado = muito compartilhado.',plats:['TikTok','Instagram'],topic:'benjamin sobrecarregado'},
+    {title:'Dimensionamento errado do disjuntor',badge:'alto',body:'Dúvida técnica mais frequente nos grupos. Posts com "qual disjuntor para chuveiro de 7500W" geram dezenas de respostas — <strong>oportunidade de conteúdo que resolve definitivamente</strong>.',plats:['Facebook grupos','YouTube'],topic:'disjuntor'},
+    {title:'Instalação elétrica sem projeto (45% dos imóveis BR)',badge:'alto',body:'Pesquisa Abracopel: <strong>apenas 29% têm projeto elétrico</strong>. Conteúdo sobre "por que você precisa de projeto elétrico" é muito salvo e enviado por profissionais.',plats:['Instagram','WhatsApp'],topic:'projeto eletrico'},
+    {title:'Fio terra: quando é obrigatório e como instalar',badge:'alto',body:'Segunda dúvida mais comentada nos grupos. Leigos não entendem para que serve. <strong>Vídeos didáticos sobre fio terra têm alto salvamento</strong> no YouTube e TikTok.',plats:['YouTube','TikTok'],topic:'aterramento'},
+    {title:'Queda de tensão e lâmpadas piscando',badge:'medio',body:'Problema que o dono do imóvel percebe mas não entende. Gera busca ativa por eletricista. <strong>"Por que minha lâmpada pisca" é dos mais buscados no YouTube Brasil</strong>.',plats:['YouTube','Google busca'],topic:'bitola'},
+    {title:'Como instalar solar em casa — passo a passo',badge:'medio',body:'Demanda crescente do consumidor final que quer entender antes de contratar. Eletricistas usam esses vídeos para atrair clientes. <strong>Alta no Nordeste e interior de SP e MG</strong>.',plats:['YouTube','Instagram'],topic:'solar'},
+    {title:'Instalação de chuveiro mais potente sem adequar a rede',badge:'critico',body:'O erro mais comum nas residências brasileiras. Gera sobrecarga, disjuntor caindo, incêndio. <strong>Comentários de leigos pedindo socorro e eletricistas explicando</strong> geram engajamento alto.',plats:['YouTube','TikTok','Facebook'],topic:'chuveiro'},
+  ],
+  problemas: [
+    {title:'Chuveiro caindo o disjuntor',badge:'critico',body:'Busca mais frequente no Google entre problemas elétricos residenciais. Qualquer vídeo resolvendo isso em menos de 3 minutos tem alto alcance orgânico.',plats:['YouTube','TikTok'],topic:'chuveiro'},
+    {title:'Tomada não funciona depois de chuva',badge:'alto',body:'Problema sazonal mas recorrente. Associado a falta de aterramento e umidade. Conteúdo preventivo tem boa performance no período de chuvas.',plats:['Facebook','WhatsApp'],topic:'tomada'},
+    {title:'Quadro elétrico antigo e subdimensionado',badge:'alto',body:'Imóveis com mais de 20 anos têm esse problema. Donos descobrem na reforma. Conteúdo mostrando "quadro antigo vs moderno" tem alto salvamento.',plats:['Instagram','YouTube'],topic:'quadro eletrico'},
+    {title:'Conta de luz alta sem explicação',badge:'alto',body:'Gateway de entrada para Solar e eficiência energética. <strong>Sempre no top 3 de buscas relacionadas a elétrica</strong>. CTA natural para diagnóstico pago.',plats:['Google','Facebook','YouTube'],topic:'medicao de energia'},
+    {title:'Portão eletrônico travando',badge:'medio',body:'Problema de manutenção recorrente. Donos frustrados buscam solução online antes de chamar técnico. Vídeo de diagnóstico rápido gera confiança.',plats:['YouTube','Facebook'],topic:'portao eletronico'},
+    {title:'Ar condicionado desligando sozinho',badge:'medio',body:'Muito buscado no verão. Quase sempre é problema elétrico (bitola errada). Conteúdo técnico simples resolve a dúvida e gera leads para instalação.',plats:['YouTube','TikTok'],topic:'ar condicionado'},
+    {title:'LED piscando mesmo novo',badge:'medio',body:'Frustração do consumidor que trocou a lâmpada e o problema continuou. Causa real é o interruptor ou o dimmer incompatível. Conteúdo educativo tem alto salvamento.',plats:['YouTube','Instagram'],topic:'iluminacao led'},
+    {title:'Cerca elétrica dando choque em usuário',badge:'critico',body:'Viraliza por ser perigoso e absurdo. Alta chance de compartilhamento por indignação. Conteúdo mostrando erro + correção gera autoridade imediata.',plats:['Facebook','Instagram'],topic:'cerca eletrica'},
+  ],
+  plataformas: [
+    {icon:'▶️',name:'YouTube',sub:'Conteúdo técnico longo + tutoriais',cor:'var(--yt)',body:'Canais de elétrica somam <strong>mais de 5 milhões de inscritos combinados</strong> no Brasil. Vídeos de dimensionamento chegam a <strong>5 milhões de visualizações</strong>. <strong>93% dos usuários</strong> acessam para aprender reparos. Melhor formato: tutoriais de 8 a 15 min com thumbnail de problema real.',regioes:'SP, MG, RS — público mais técnico e comprometido'},
+    {icon:'📸',name:'Instagram',sub:'Reels curtos + carrosséis educativos',cor:'var(--ig)',body:'Perfil Eletricity já tem <strong>225 mil seguidores</strong>. Reels de erro comum + correção têm alcance orgânico alto. Carrosséis "5 erros que causam incêndio" são muito salvos. Melhor formato: Reels de 30 a 60s com texto na tela.',regioes:'SP, MG, RJ, Interior — público mais jovem'},
+    {icon:'🎵',name:'TikTok',sub:'Vídeos curtos de impacto + choque',cor:'var(--tt)',body:'Crescimento acelerado no nicho técnico. Vídeos mostrando <strong>erros absurdos ao vivo</strong> viralizam rapidamente. Hook visual nos primeiros 2 segundos é obrigatório. Melhor formato: 15 a 45s, vertical, sem cortes.',regioes:'Público mais jovem + iniciantes na profissão'},
+    {icon:'📘',name:'Facebook',sub:'Grupos + posts educativos',cor:'#5b9cf6',body:'<strong>Bahia e Nordeste</strong>: público mais velho confia em grupos de comunidade. Grupos de eletricistas têm 50k a 200k membros. Posts com pergunta técnica geram debate e alcance orgânico. Melhor formato: post com imagem + pergunta.',regioes:'Bahia, Nordeste, Interior — público 35-55 anos'},
+    {icon:'💬',name:'WhatsApp',sub:'Grupos de profissionais',cor:'#4af0a0',body:'Canal mais direto para Nordeste e interior. Conteúdo em PDF e vídeo curto funciona bem. <strong>Grupos de eletricistas compartilham tutoriais práticos</strong> com alta velocidade. Melhor formato: vídeo vertical curto + PDF de checklist.',regioes:'Nordeste, Interior MG, Interior SP'},
+  ],
+  hashtags: {
+    sp:['#eletricistaSP','#eletricistaSãoPaulo','#obraSP','#construcaocivil','#eletricistaauto','#instalacaoeletricaSP','#eletricistaprofissional','#reformaSP'],
+    bh:['#eletricistasBH','#eletricistaMG','#eletricistabelohorizonte','#obraBH','#instalacaoBH','#construcaoBH','#eletricistaMinasGerais'],
+    ba:['#eletricistaBahia','#eletricistaSalvador','#eletricistaNordeste','#instalacaoBahia','#obraBahia','#eletricistaBA'],
+    ne:['#eletricistaNordeste','#eletristaRecife','#eletricistaMaceio','#eletristaFortaleza','#solarNordeste','#eletricistaCE','#eletricistaPE'],
+    rj:['#eletristaRJ','#eletricistaRio','#obraRJ','#construcaoRJ','#instalacaoRJ'],
+    geral:['#eletricista','#instalacaoeletrica','#dicaeletricista','#eletricistabrasil','#NR10','#segurancaeletrica','#eletricistaauto','#cursoeletricista','#energiasolar','#fotovoltaico','#quadroeletrico','#disjuntor','#chuveiro','#aterramento'],
+    viral:['#dicaeletricista','#erroeletrico','#segurancaeletrica','#aprendereletrica','#eletricoday','#eletricidadebrasil','#instalacaoeletrica','#eletricistaprofissional'],
+  },
+  estrategia: [
+    {regiao:'Grande SP e Interior SP',icon:'🏙️',estrategia:'Instagram + YouTube',dica:'Público técnico e competitivo. Diferencial: conteúdo de qualidade técnica alta + orçamento profissional. Poste 3x por semana no Instagram (Reels) e 1 vídeo longo por semana no YouTube. Use thumbnails com erro real.',cta:'quadro eletrico'},
+    {regiao:'BH / RMBH e Interior MG',icon:'⛰️',estrategia:'YouTube + Instagram',dica:'Mercado mais técnico e exigente. Conteúdo sobre NBR 5410, laudos e projetos performa bem. Foque em autoridade técnica. Um vídeo bem feito sobre laudo elétrico pode gerar dezenas de chamados.',cta:'laudo eletrico'},
+    {regiao:'Bahia e Nordeste',icon:'☀️',estrategia:'Facebook + WhatsApp + Instagram',dica:'Solar fotovoltaico tem demanda altíssima e poucos especialistas com presença digital. Primeiro a postar sobre dimensionamento solar domina a região. Facebook grupos ainda são muito ativos.',cta:'solar'},
+    {regiao:'Rio de Janeiro',icon:'🌊',estrategia:'Instagram + YouTube',dica:'Muito condomínio e edificação predial. Conteúdo sobre normas, SPDA e laudos performa bem. Público urbano e com poder de compra maior. Foque em segurança e conformidade.',cta:'laudo eletrico'},
+  ],
+};
+
+function showTrendTab(tab, btn){
+  document.querySelectorAll('.trend-stab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const el=document.getElementById('trend-content');
+  if(tab==='viral') renderTrendCards(TRENDS.viral, el);
+  else if(tab==='problemas') renderTrendCards(TRENDS.problemas, el);
+  else if(tab==='plataformas') renderTrendPlats(el);
+  else if(tab==='hashtags') renderTrendHashtags(el);
+  else if(tab==='estrategia') renderTrendStrategy(el);
+}
+
+function renderTrendCards(data, el){
+  el.innerHTML=`<div class="trend-grid">${data.map(t=>`
+    <div class="tcard-trend">
+      <div class="tcard-trend-head">
+        <div class="tcard-trend-title">${t.title}</div>
+        <span class="tbadge ${t.badge}">${t.badge==='critico'?'🔴 Crítico':t.badge==='alto'?'🟠 Alto':t.badge==='medio'?'🔵 Médio':'🟢 Viral'}</span>
+      </div>
+      <div class="tcard-trend-body">${t.body}</div>
+      <div class="tcard-trend-plats">${(t.plats||[]).map(p=>`<span class="tplat">${p}</span>`).join('')}</div>
+      <button class="tcard-trend-btn" onclick="useTrendInChat('${t.topic}')">⚡ Criar conteúdo sobre isso</button>
+    </div>`).join('')}</div>`;
+}
+
+function renderTrendPlats(el){
+  el.innerHTML=`<div class="plat-strategy">${TRENDS.plataformas.map(p=>`
+    <div class="pstrat-card">
+      <div class="pstrat-head">
+        <span class="pstrat-icon">${p.icon}</span>
+        <div><div class="pstrat-name" style="color:${p.cor}">${p.name}</div><div class="pstrat-sub">${p.sub}</div></div>
+      </div>
+      <div class="pstrat-body">${p.body}</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--text3)">📍 ${p.regioes}</div>
+    </div>`).join('')}</div>`;
+}
+
+function renderTrendHashtags(el){
+  const labels={sp:'📍 Grande SP',bh:'📍 BH / MG',ba:'📍 Bahia',ne:'📍 Nordeste',rj:'📍 Rio de Janeiro',geral:'🌐 Geral',viral:'🔥 Virais'};
+  el.innerHTML=Object.entries(TRENDS.hashtags).map(([k,tags])=>`
+    <div class="hashtag-region">
+      <h4>${labels[k]||k}</h4>
+      <div class="tags-wrap">${tags.map(t=>`<span class="tag" onclick="copyTag('${t}')" title="Clique pra copiar">${t}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+function renderTrendStrategy(el){
+  el.innerHTML=`<div class="plat-strategy">${TRENDS.estrategia.map(s=>`
+    <div class="pstrat-card">
+      <div class="pstrat-head">
+        <span class="pstrat-icon">${s.icon}</span>
+        <div><div class="pstrat-name">${s.regiao}</div><div class="pstrat-sub" style="color:var(--accent)">${s.estrategia}</div></div>
+      </div>
+      <div class="pstrat-body">${s.dica}</div>
+      <button class="tcard-trend-btn" style="margin-top:10px" onclick="useTrendInChat('${s.cta}')">⚡ Criar conteúdo para essa região</button>
+    </div>`).join('')}</div>`;
+}
+
+function useTrendInChat(topic){
+  showPanel('chat');
+  document.getElementById('chat-input').value=topic;
+  sendMsg();
+}
 </script>
 </body>
 </html>
