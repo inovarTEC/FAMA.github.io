@@ -2,7 +2,13 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VoltContent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" id="pwa-manifest">
 <title>⚡ VoltContent v2</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -254,6 +260,103 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 .pstrat-body strong{color:var(--text)}
 .hashtag-region{margin-bottom:14px}
 .hashtag-region h4{font-size:13px;font-weight:600;margin-bottom:8px;color:var(--accent)}
+/* ============================================================
+   MOBILE FIRST — RESPONSIVO
+   ============================================================ */
+
+/* Hamburger button */
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1}
+
+/* Sidebar overlay (mobile) */
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200}
+.sb-overlay.open{display:block}
+
+/* Tablet */
+@media(max-width:900px){
+  .header-links{display:none}
+  .chat-sb{width:220px}
+  .cgrid7{grid-template-columns:repeat(4,1fr)}
+  .trend-grid{grid-template-columns:1fr 1fr}
+  .cgrid{grid-template-columns:1fr 1fr}
+  .lgrid{grid-template-columns:1fr 1fr}
+}
+
+/* Mobile */
+@media(max-width:600px){
+  /* Topbar */
+  .topbar{padding:0 12px;height:52px;gap:8px}
+  .logo{font-size:16px}
+  .logo span{display:none}
+  .hamburger{display:block}
+  .tabs{gap:2px}
+  .tb{font-size:11px;padding:5px 8px;gap:3px}
+  .tb span.tb-label{display:none}
+  .header-links{display:none}
+
+  /* Counter */
+  .pcounter{padding:6px 12px;gap:8px}
+  .pci{font-size:11px}
+
+  /* Sidebar — deslizante */
+  .chat-sb{
+    position:fixed;left:0;top:52px;bottom:0;
+    width:280px;z-index:201;
+    transform:translateX(-100%);
+    transition:transform .3s ease;
+    box-shadow:4px 0 20px rgba(0,0,0,.5);
+  }
+  .chat-sb.open{transform:translateX(0)}
+
+  /* Chat area ocupa tudo */
+  .chat-area{width:100%}
+
+  /* Messages */
+  .chat-msgs{padding:12px}
+  .msg{max-width:95%}
+  .mbub{font-size:13px;padding:10px 12px}
+
+  /* Input area */
+  .cinput-area{padding:10px 12px}
+  .sugest-row{gap:5px;margin-bottom:8px}
+  .sugest-chip{font-size:11px;padding:4px 9px}
+  .cinput{font-size:14px;padding:10px 12px}
+  .sbtn{width:44px;height:44px;font-size:18px}
+
+  /* Result card */
+  .rcard{margin-top:4px}
+  .rtabs{-webkit-overflow-scrolling:touch}
+  .rtab{font-size:11px;padding:8px 10px}
+  .rbody{padding:10px}
+  .fval,.fval-dor,.fval-ben{font-size:13px}
+
+  /* Content/Links grids */
+  .cgrid,.lgrid,.trend-grid,.links-grid{grid-template-columns:1fr}
+  .content-panel,.links-panel,.calendar-panel,.trends-panel{padding:12px;gap:10px}
+
+  /* Calendar — lista em vez de grid */
+  .cgrid7{grid-template-columns:1fr;gap:6px}
+  .cday{min-height:auto;display:flex;align-items:center;gap:10px;padding:10px}
+  .cday-hd{display:none}
+  .cday-num{font-size:20px;min-width:36px;text-align:center;margin-bottom:0}
+  .add-day-btn{display:block;width:auto;flex-shrink:0}
+
+  /* Modal */
+  .modal{padding:16px;border-radius:12px}
+  .macts{flex-direction:column}
+  .macts button{width:100%}
+
+  /* History panel */
+  .hist-panel{width:100%;top:52px}
+
+  /* Bio section */
+  .bio-section{padding:12px}
+
+  /* Tendências */
+  .trend-subtabs{gap:5px}
+  .trend-stab{font-size:12px;padding:6px 10px}
+  .tcard-trend{padding:12px}
+}
+
 /* TOAST */
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--accent);color:#000;font-weight:600;padding:9px 18px;border-radius:18px;font-size:13px;transition:transform .3s;z-index:2000;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
@@ -262,14 +365,15 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 <body>
 <div class="app">
 <div class="topbar">
+  <button class="hamburger" onclick="toggleSidebar()" id="hamburger-btn">☰</button>
   <div class="logo">⚡ VoltContent <span>v2.0</span></div>
   <div class="header-links" id="header-links"></div>
   <div class="tabs">
-    <button class="tb active" onclick="showPanel('chat')" id="tab-chat">💬 Chat</button>
-    <button class="tb" onclick="showPanel('content')" id="tab-content">📂 Conteúdos</button>
-    <button class="tb" onclick="showPanel('links')" id="tab-links">🔗 Links</button>
-    <button class="tb" onclick="showPanel('calendar')" id="tab-calendar">📅 Calendário</button>
-    <button class="tb" onclick="showPanel('trends')" id="tab-trends">📊 Tendências</button>
+    <button class="tb active" onclick="showPanel('chat')" id="tab-chat">💬 <span class="tb-label">Chat</span></button>
+    <button class="tb" onclick="showPanel('content')" id="tab-content">📂 <span class="tb-label">Conteúdos</span></button>
+    <button class="tb" onclick="showPanel('links')" id="tab-links">🔗 <span class="tb-label">Links</span></button>
+    <button class="tb" onclick="showPanel('calendar')" id="tab-calendar">📅 <span class="tb-label">Calendário</span></button>
+    <button class="tb" onclick="showPanel('trends')" id="tab-trends">📊 <span class="tb-label">Tendências</span></button>
     <button class="tb" onclick="toggleHistory()" style="margin-left:4px">🕐</button>
   </div>
 </div>
@@ -369,6 +473,9 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 
 </div><!-- main -->
 </div><!-- app -->
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sb-overlay" id="sb-overlay" onclick="toggleSidebar()"></div>
 
 <!-- HISTORY -->
 <div class="hist-panel" id="hist-panel">
@@ -2953,6 +3060,7 @@ function selectRegion(key){
   selectedRegion=key;
   chatState.region=key;
   renderRegions();
+  closeSidebarOnSelect();
   toast('Região: '+REGION_DATA[key].label);
   if(chatState.step==='got_topic') askPlatform();
 }
@@ -3839,11 +3947,56 @@ function removeCalPost(date,idx){
 // ============================================================
 // INIT
 // ============================================================
+function toggleSidebar(){
+  const sb=document.getElementById('panel-chat')?.querySelector('.chat-sb');
+  const overlay=document.getElementById('sb-overlay');
+  if(!sb) return;
+  const isOpen=sb.classList.contains('open');
+  sb.classList.toggle('open',!isOpen);
+  overlay.classList.toggle('open',!isOpen);
+}
+
+function closeSidebarOnSelect(){
+  if(window.innerWidth<=600){
+    const sb=document.getElementById('panel-chat')?.querySelector('.chat-sb');
+    const overlay=document.getElementById('sb-overlay');
+    sb?.classList.remove('open');
+    overlay?.classList.remove('open');
+  }
+}
+
+function setupPWA(){
+  const manifest={
+    name:'VoltContent',
+    short_name:'VoltContent',
+    description:'Gerador de conteúdo para eletricista',
+    start_url:'.',
+    display:'standalone',
+    background_color:'#0a0a0f',
+    theme_color:'#f0b429',
+    icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%230a0a0f"/><text y=".9em" font-size="80">⚡</text></svg>',sizes:'192x192',type:'image/svg+xml'}]
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  document.getElementById('pwa-manifest').href=url;
+  if('serviceWorker' in navigator){
+    // SW inline para cache offline
+    const sw=`
+self.addEventListener('install',e=>e.waitUntil(caches.open('vc2').then(c=>c.add('/'))));
+self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+    `.trim();
+    const swBlob=new Blob([sw],{type:'application/javascript'});
+    const swUrl=URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl).catch(()=>{});
+  }
+}
+
 function init(){
   renderRegions();
   renderQuickLinks();
   renderHeaderLinks();
   updateCounters();
+  setupPWA();
   // Welcome message
   addMsg(`<p>Olá! Sou o <strong>VoltContent ⚡</strong>, seu assistente de conteúdo para eletricista.</p>
 <p>Selecione sua <strong>região</strong> no painel esquerdo e depois me diga o <strong>assunto do seu vídeo</strong>.</p>
