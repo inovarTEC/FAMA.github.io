@@ -352,9 +352,51 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
   .bio-section{padding:12px}
 
   /* Tendências */
-  .trend-subtabs{gap:5px}
-  .trend-stab{font-size:12px;padding:6px 10px}
+  .trend-subtabs{gap:5px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .trend-stab{font-size:12px;padding:6px 10px;white-space:nowrap;flex-shrink:0}
+  .trend-grid{grid-template-columns:1fr}
   .tcard-trend{padding:12px}
+  .tcard-trend-title{font-size:13px}
+
+  /* Card resultado — abas com scroll e touch melhor */
+  .rtabs{-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .rtabs::-webkit-scrollbar{display:none}
+  .rtab{font-size:11px;padding:8px 9px;min-width:fit-content}
+  .rcard-head{flex-direction:column;align-items:flex-start;gap:6px}
+  .rcard-badge{align-self:flex-start}
+
+  /* Calendário mobile — lista com toque fácil */
+  .cday{min-height:52px;border-radius:8px}
+  .cday-num{font-size:18px;font-weight:700;min-width:32px}
+  .cday-day-mobile{display:block !important}
+  .cpost{font-size:12px;padding:4px 8px;border-radius:4px}
+  .add-day-btn{font-size:18px;padding:6px 12px;border-radius:6px}
+
+  /* Modal — tela cheia no mobile */
+  .moverlay{padding:0;align-items:flex-end}
+  .modal{max-width:100%;border-radius:16px 16px 0 0;max-height:90vh;padding:18px}
+  .modal h3{font-size:15px}
+  .mf input,.mf textarea,.mf select{font-size:16px}
+
+  /* Modal view ficha */
+  #modal-view .modal{max-height:90vh}
+  #modal-view .rtab{font-size:11px;padding:7px 8px}
+
+  /* Botões de ação nos cards */
+  .ccard-acts{flex-wrap:wrap;gap:5px}
+  .ccard-acts .btn-p{flex:1;justify-content:center}
+
+  /* Copy all btn */
+  .copy-all{font-size:13px;padding:13px}
+  .save-kb-btn{font-size:12px;padding:10px}
+  .fb-btn{font-size:12px;padding:10px}
+
+  /* Histórico — tela cheia */
+  .hist-panel{width:100%;top:52px}
+
+  /* Platform counter compacto */
+  .pcounter{padding:5px 10px;gap:6px}
+  .pci{font-size:10px;gap:3px}
 }
 
 /* TOAST */
@@ -3915,10 +3957,15 @@ function renderCalendar(){
     const posts=DB.calendar[key]||[];
     html+=`<div class="cday">
       <div class="cday-hd">${days[i]}</div>
-      <div class="cday-num ${key===today?'today':''}">${d.getDate()}</div>
-      ${posts.map((p,pi)=>`<div class="cpost ${p.plat}" title="${p.title}" onclick="removeCalPost('${key}',${pi})" style="cursor:pointer">
-        ${p.plat==='yt'?'▶️':p.plat==='ig'?'📸':'🎵'} ${p.title.substring(0,14)}...
-      </div>`).join('')}
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="cday-num ${key===today?'today':''}">${d.getDate()}</div>
+        <div class="cday-day-mobile" style="font-size:12px;color:var(--text3);display:none">${days[i]}</div>
+      </div>
+      <div style="flex:1">
+        ${posts.map((p,pi)=>`<div class="cpost ${p.plat}" title="${p.title}" onclick="removeCalPost('${key}',${pi})" style="cursor:pointer">
+          ${p.plat==='yt'?'▶️':p.plat==='ig'?'📸':'🎵'} ${p.title.substring(0,18)}${p.title.length>18?'...':''}
+        </div>`).join('')}
+      </div>
       <button class="add-day-btn" onclick="openCalModal('${key}')">+</button>
     </div>`;
   }
@@ -3967,14 +4014,17 @@ function closeSidebarOnSelect(){
 
 function setupPWA(){
   const manifest={
-    name:'VoltContent',
-    short_name:'VoltContent',
+    name:'FAMA — VoltContent',
+    short_name:'FAMA',
     description:'Gerador de conteúdo para eletricista',
     start_url:'.',
     display:'standalone',
     background_color:'#0a0a0f',
     theme_color:'#f0b429',
-    icons:[{src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%230a0a0f"/><text y=".9em" font-size="80">⚡</text></svg>',sizes:'192x192',type:'image/svg+xml'}]
+    icons:[
+      {src:'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 680 680%22%3E%3Cdefs%3E%3CradialGradient id=%22bg%22 cx=%2250%25%22 cy=%2250%25%22 r=%2250%25%22%3E%3Cstop offset=%220%25%22 stop-color=%22%231a1a2e%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%230a0a0f%22/%3E%3C/radialGradient%3E%3ClinearGradient id=%22gold%22 x1=%2230%25%22 y1=%220%25%22 x2=%2270%25%22 y2=%22100%25%22%3E%3Cstop offset=%220%25%22 stop-color=%22%23ffe066%22/%3E%3Cstop offset=%2240%25%22 stop-color=%22%23f0b429%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%23c47d00%22/%3E%3C/linearGradient%3E%3ClinearGradient id=%22blue%22 x1=%220%25%22 y1=%220%25%22 x2=%22100%25%22 y2=%22100%25%22%3E%3Cstop offset=%220%25%22 stop-color=%22%2360c8ff%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%231a7fcf%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%22680%22 height=%22680%22 rx=%22120%22 fill=%22url(%23bg)%22/%3E%3Cellipse cx=%22340%22 cy=%22320%22 rx=%22180%22 ry=%22220%22 fill=%22%231a6aaa%22 opacity=%220.18%22/%3E%3Cpolygon points=%22390,70 270,320 355,320 290,570 480,270 385,270 460,70%22 fill=%22url(%23blue)%22 opacity=%220.55%22/%3E%3Cpolygon points=%22380,80 255,330 345,330 278,572 475,280 375,280 455,80%22 fill=%22url(%23gold)%22/%3E%3Cpolygon points=%22370,150 295,330 355,330 305,490 425,290 360,290 415,150%22 fill=%22%230d0d18%22 opacity=%220.45%22/%3E%3Cpolygon points=%22380,80 255,330 285,330 400,80%22 fill=%22%23ffe8a0%22 opacity=%220.25%22/%3E%3Ctext x=%22340%22 y=%22650%22 text-anchor=%22middle%22 font-family=%22Syne,sans-serif%22 font-size=%2272%22 font-weight=%22800%22 fill=%22%23f0b429%22 letter-spacing=%2212%22 opacity=%220.95%22%3EFAMA%3C/text%3E%3C/svg%3E',sizes:'192x192',type:'image/svg+xml'},
+      {src:'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 680 680%22%3E%3Cdefs%3E%3CradialGradient id=%22bg%22 cx=%2250%25%22 cy=%2250%25%22 r=%2250%25%22%3E%3Cstop offset=%220%25%22 stop-color=%22%231a1a2e%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%230a0a0f%22/%3E%3C/radialGradient%3E%3ClinearGradient id=%22gold%22 x1=%2230%25%22 y1=%220%25%22 x2=%2270%25%22 y2=%22100%25%22%3E%3Cstop offset=%220%25%22 stop-color=%22%23ffe066%22/%3E%3Cstop offset=%2240%25%22 stop-color=%22%23f0b429%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%23c47d00%22/%3E%3C/linearGradient%3E%3ClinearGradient id=%22blue%22 x1=%220%25%22 y1=%220%25%22 x2=%22100%25%22 y2=%22100%25%22%3E%3Cstop offset=%220%25%22 stop-color=%22%2360c8ff%22/%3E%3Cstop offset=%22100%25%22 stop-color=%22%231a7fcf%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%22680%22 height=%22680%22 rx=%22120%22 fill=%22url(%23bg)%22/%3E%3Cellipse cx=%22340%22 cy=%22320%22 rx=%22180%22 ry=%22220%22 fill=%22%231a6aaa%22 opacity=%220.18%22/%3E%3Cpolygon points=%22390,70 270,320 355,320 290,570 480,270 385,270 460,70%22 fill=%22url(%23blue)%22 opacity=%220.55%22/%3E%3Cpolygon points=%22380,80 255,330 345,330 278,572 475,280 375,280 455,80%22 fill=%22url(%23gold)%22/%3E%3Cpolygon points=%22370,150 295,330 355,330 305,490 425,290 360,290 415,150%22 fill=%22%230d0d18%22 opacity=%220.45%22/%3E%3Cpolygon points=%22380,80 255,330 285,330 400,80%22 fill=%22%23ffe8a0%22 opacity=%220.25%22/%3E%3Ctext x=%22340%22 y=%22650%22 text-anchor=%22middle%22 font-family=%22Syne,sans-serif%22 font-size=%2272%22 font-weight=%22800%22 fill=%22%23f0b429%22 letter-spacing=%2212%22 opacity=%220.95%22%3EFAMA%3C/text%3E%3C/svg%3E',sizes:'512x512',type:'image/svg+xml'}
+    ]
   };
   const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
