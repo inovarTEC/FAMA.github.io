@@ -433,7 +433,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
     <button class="tb" onclick="showPanel('links')" id="tab-links">🔗 <span class="tb-label">Links</span></button>
     <button class="tb" onclick="showPanel('calendar')" id="tab-calendar">📅 <span class="tb-label">Calendário</span></button>
     <button class="tb" onclick="showPanel('trends')" id="tab-trends">📊 <span class="tb-label">Tendências</span></button>
-    <button class="tb" onclick="toggleHistory()" style="margin-left:4px">🕐</button>
+    <button class="tb" onclick="toggleHistory()" style="margin-left:4px" title="Histórico">🕐</button>
   </div>
 </div>
 <div class="pcounter">
@@ -474,7 +474,8 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
       </div>
       <div class="cinput-row">
         <textarea class="cinput" id="chat-input" placeholder="Digite o assunto (ex: chuveiro, sensor, solar...)" rows="1" onkeydown="handleKey(event)"></textarea>
-        <button class="sbtn" onclick="sendMsg()">➤</button>
+        <button class="sbtn" onclick="sendMsg()" title="Enviar">➤</button>
+        <button class="sbtn" onclick="clearChat()" title="Limpar chat" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:16px">🗑️</button>
       </div>
     </div>
   </div>
@@ -4054,6 +4055,24 @@ self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r
     const swUrl=URL.createObjectURL(swBlob);
     navigator.serviceWorker.register(swUrl).catch(()=>{});
   }
+}
+
+async function clearChat(){
+  // Reset completo — sem confirm() que pode ser bloqueado em file://
+  const el=document.getElementById('chat-msgs');
+  el.innerHTML='';
+  chatState.step='idle';
+  chatState.topic=null;
+  chatState.topicKey=null;
+  chatState.region=selectedRegion;
+  chatState.objetivo='conteudo';
+  chatState.platform=null;
+  chatState.kbData=null;
+  chatState.editingContentIdx=-1;
+  document.getElementById('opt-row')?.remove();
+  document.getElementById('typing-indicator')?.remove();
+  await addMsg('<p>🗑️ Chat limpo! Selecione a <strong>região</strong> e digite o assunto do próximo conteúdo.</p>');
+  toast('🗑️ Chat limpo!');
 }
 
 function init(){
