@@ -60,6 +60,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 .chat-msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .msg{display:flex;gap:10px;max-width:88%;animation:fi .3s ease;box-sizing:border-box}
 .msg.bot{align-self:flex-start}
+.msg-card{max-width:100% !important;width:100% !important;gap:0 !important;padding:0 !important}
 .msg.user{align-self:flex-end;flex-direction:row-reverse}
 @keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .mavt{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
@@ -311,11 +312,12 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
   .chat-area{width:100%}
 
   /* Messages */
-  .chat-msgs{padding:12px}
-  .msg{max-width:98%;min-width:0}
-  .msg.bot{max-width:100%;width:100%}
-  .mbub{min-width:0;word-break:break-word}
-  .mbub{font-size:13px;padding:10px 12px}
+  .chat-msgs{padding:8px 4px}
+  .msg{max-width:98%;min-width:0;gap:6px}
+  .msg.bot{max-width:calc(100% - 8px);width:calc(100% - 8px)}
+  .mavt{width:26px;height:26px;font-size:13px;flex-shrink:0}
+  .mbub{min-width:0;word-break:break-word;flex:1;overflow:hidden}
+  .mbub{font-size:13px;padding:10px 11px}
 
   /* Input area */
   .cinput-area{padding:10px 12px}
@@ -326,6 +328,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 
   /* Result card */
   .rcard{margin-top:4px;width:100%;max-width:100%;overflow:hidden;box-sizing:border-box}
+  .msg-card .mbub{display:none}
   .rcard-head{padding:10px 12px;flex-wrap:wrap;gap:6px}
   .rcard-title{font-size:13px}
   .rtabs{-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory}
@@ -3741,9 +3744,8 @@ async function choosePlatform(platform){
     chatState.kbData._allPlatforms=true;
     const msgs=document.getElementById('chat-msgs');
     const d=document.createElement('div');
-    d.className='msg bot';
-    d.style.maxWidth='100%';
-    d.innerHTML=`<div style="flex:1">${buildResultCard(chatState.kbData,chatState.region,'YouTube',cardId)}</div>`;
+    d.className='msg bot msg-card';
+    d.innerHTML=`${buildResultCard(chatState.kbData,chatState.region,'YouTube',cardId)}`;
     msgs.appendChild(d);
     msgs.scrollTop=msgs.scrollHeight;
     addToHistory(chatState.kbData.tema, REGION_DATA[chatState.region].label, 'YouTube+IG+TT');
@@ -3752,9 +3754,8 @@ async function choosePlatform(platform){
     const cardId='rc_'+Date.now();
     const msgs=document.getElementById('chat-msgs');
     const d=document.createElement('div');
-    d.className='msg bot';
-    d.style.maxWidth='100%';
-    d.innerHTML=`<div style="flex:1">${buildResultCard(chatState.kbData,chatState.region,platform,cardId)}</div>`;
+    d.className='msg bot msg-card';
+    d.innerHTML=`${buildResultCard(chatState.kbData,chatState.region,platform,cardId)}`;
     msgs.appendChild(d);
     msgs.scrollTop=msgs.scrollHeight;
     addToHistory(chatState.kbData.tema, REGION_DATA[chatState.region].label, platform);
