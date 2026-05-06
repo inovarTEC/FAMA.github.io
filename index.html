@@ -58,7 +58,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 .chat-msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
 .chat-msgs::-webkit-scrollbar{width:4px}
 .chat-msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.msg{display:flex;gap:10px;max-width:88%;animation:fi .3s ease}
+.msg{display:flex;gap:10px;max-width:88%;animation:fi .3s ease;box-sizing:border-box}
 .msg.bot{align-self:flex-start}
 .msg.user{align-self:flex-end;flex-direction:row-reverse}
 @keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -312,7 +312,9 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 
   /* Messages */
   .chat-msgs{padding:12px}
-  .msg{max-width:95%}
+  .msg{max-width:98%;min-width:0}
+  .msg.bot{max-width:100%;width:100%}
+  .mbub{min-width:0;word-break:break-word}
   .mbub{font-size:13px;padding:10px 12px}
 
   /* Input area */
@@ -323,10 +325,22 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
   .sbtn{width:44px;height:44px;font-size:18px}
 
   /* Result card */
-  .rcard{margin-top:4px}
-  .rtabs{-webkit-overflow-scrolling:touch}
-  .rtab{font-size:11px;padding:8px 10px}
-  .rbody{padding:10px}
+  .rcard{margin-top:4px;width:100%;max-width:100%;overflow:hidden;box-sizing:border-box}
+  .rcard-head{padding:10px 12px;flex-wrap:wrap;gap:6px}
+  .rcard-title{font-size:13px}
+  .rtabs{-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory}
+  .rtab{font-size:12px;padding:10px 11px;min-height:40px;scroll-snap-align:start}
+  .rbody{padding:10px;overflow:hidden}
+  .fval,.fval-dor,.fval-ben{font-size:13px;word-break:break-word}
+  .copy-all{font-size:13px;padding:12px 8px;word-break:break-word}
+  .fb-btn{font-size:12px;padding:10px 8px;flex-wrap:wrap;text-align:center;line-height:1.5}
+  .save-kb-btn{font-size:12px;padding:10px 8px}
+  .links-result{gap:5px}
+  .lpill{font-size:11px;padding:4px 9px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hooks-list{gap:4px}
+  .hitem{padding:7px 10px;font-size:12px}
+  .tags-wrap{gap:4px}
+  .tag{font-size:11px;padding:3px 7px}
   .fval,.fval-dor,.fval-ben{font-size:13px}
 
   /* Content/Links grids */
@@ -3440,7 +3454,7 @@ function buildResultCard(kbData, region, platform, cardId){
     </div>
     <button class="copy-all" onclick="copyAll(chatState.kbData,'${region}','${platform}')">📋 COPIAR TUDO DE UMA VEZ</button>
     <a class="fb-btn" href="https://www.facebook.com/ads/library/?active_status=all&ad_type=all&country=BR&q=${encodeURIComponent(kbData.tema)}&search_type=keyword_unordered" target="_blank" rel="noopener">
-      🔍 Ver anúncios de <strong style="margin-left:3px">${kbData.tema}</strong> na Biblioteca do Facebook
+      🔍 Biblioteca do Facebook — <strong>${kbData.tema}</strong>
     </a>
     <button class="save-kb-btn" onclick="saveToKBFromResult('${kbData.tema}','${kbData.categoria}')">💾 Salvar / Atualizar nos Meus Conteúdos</button>
     ${kbData._fallback?`<button class="save-kb-btn" style="margin-top:4px;background:rgba(74,144,240,.1);color:#6ab0ff;border-color:rgba(74,144,240,.3)" onclick="startConfigurator('${kbData.tema}')">🛠️ Personalizar com Configurador</button>`:''}
