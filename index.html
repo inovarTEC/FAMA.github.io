@@ -419,6 +419,9 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 .login-btn:hover{opacity:.85}
 .login-err{color:#ff6060;font-size:13px;text-align:center;min-height:18px;margin-bottom:4px}
 .login-loading{text-align:center;font-size:13px;color:var(--text2);display:none}
+.login-link{background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;text-decoration:underline;font-family:'DM Sans',sans-serif;padding:0}
+.login-link:hover{opacity:.75}
+.login-ok{color:#4af0a0;font-size:13px;text-align:center;min-height:18px;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -427,12 +430,32 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">⚡ VoltContent</div>
-    <div class="login-sub">Faça login para acessar</div>
-    <input class="login-input" type="email" id="login-email" placeholder="Seu e-mail" autocomplete="email">
-    <input class="login-input" type="password" id="login-senha" placeholder="Sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()">
-    <div class="login-err" id="login-err"></div>
-    <button class="login-btn" onclick="fazerLogin()">Entrar</button>
-    <div class="login-loading" id="login-loading">Verificando sessão...</div>
+
+    <!-- PAINEL LOGIN -->
+    <div id="painel-login">
+      <div class="login-sub">Faça login para acessar</div>
+      <input class="login-input" type="email" id="login-email" placeholder="Seu e-mail" autocomplete="email">
+      <input class="login-input" type="password" id="login-senha" placeholder="Sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()">
+      <div class="login-err" id="login-err"></div>
+      <button class="login-btn" onclick="fazerLogin()">Entrar</button>
+      <div class="login-loading" id="login-loading">Verificando sessão...</div>
+      <div style="text-align:center;margin-top:8px">
+        <button class="login-link" onclick="mostrarRecuperar()">Esqueci minha senha</button>
+      </div>
+    </div>
+
+    <!-- PAINEL RECUPERAR SENHA -->
+    <div id="painel-recuperar" style="display:none">
+      <div class="login-sub">Informe seu e-mail para receber o link de redefinição</div>
+      <input class="login-input" type="email" id="recuperar-email" placeholder="Seu e-mail" autocomplete="email">
+      <div class="login-err" id="recuperar-err"></div>
+      <div class="login-ok" id="recuperar-ok"></div>
+      <button class="login-btn" onclick="enviarRecuperacao()">Enviar link de recuperação</button>
+      <div style="text-align:center;margin-top:8px">
+        <button class="login-link" onclick="mostrarLoginPanel()">← Voltar ao login</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -758,6 +781,41 @@ async function fazerLogout(){
   localStorage.removeItem(SESSION_KEY);
   await auth.signOut();
   mostrarLogin();
+}
+
+// RECUPERAÇÃO DE SENHA
+async function enviarRecuperacao(){
+  const email = document.getElementById('recuperar-email').value.trim();
+  const err   = document.getElementById('recuperar-err');
+  const ok    = document.getElementById('recuperar-ok');
+  err.textContent='';
+  ok.textContent='';
+  if(!email){err.textContent='Informe seu e-mail.';return;}
+  try{
+    await auth.sendPasswordResetEmail(email);
+    ok.textContent='✅ Link enviado! Verifique sua caixa de entrada.';
+    document.getElementById('recuperar-email').value='';
+  }catch(e){
+    if(e.code==='auth/user-not-found'){
+      err.textContent='E-mail não encontrado.';
+    }else{
+      err.textContent='Erro ao enviar. Tente novamente.';
+    }
+  }
+}
+
+// ALTERNAR PAINÉIS DA TELA DE LOGIN
+function mostrarRecuperar(){
+  document.getElementById('painel-login').style.display='none';
+  document.getElementById('painel-recuperar').style.display='block';
+  document.getElementById('recuperar-err').textContent='';
+  document.getElementById('recuperar-ok').textContent='';
+}
+
+function mostrarLoginPanel(){
+  document.getElementById('painel-recuperar').style.display='none';
+  document.getElementById('painel-login').style.display='block';
+  document.getElementById('login-err').textContent='';
 }
 
 // VERIFICAR SESSÃO
