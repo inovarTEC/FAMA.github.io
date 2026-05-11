@@ -729,6 +729,9 @@ firebase.initializeApp({
 });
 const _auth = firebase.auth();
 const _db   = firebase.firestore();
+// Força conexão em tempo real — desativa cache offline do Firestore
+_db.settings({ experimentalForceLongPolling: true });
+_db.enableNetwork().catch(()=>{});
 const _SK   = '__vs__';      // chave do token no localStorage
 let   _mon  = null;          // função cancel do listener Firestore
 let   _ready= false;         // app já foi aberto?
@@ -742,8 +745,8 @@ function _openApp(uid){
   _ready = true;
   document.getElementById('ls').classList.add('off');
   document.getElementById('app').style.display='flex';
-  // Inicia monitor APÓS 5s — tempo para o Firestore salvar o token
-  setTimeout(()=>_startMon(uid), 5000);
+  // Inicia monitor após 1s — tempo mínimo para salvar token
+  setTimeout(()=>_startMon(uid), 1000);
 }
 function _closeApp(){
   _ready = false;
