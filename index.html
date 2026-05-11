@@ -11,10 +11,6 @@
 <link rel="manifest" id="pwa-manifest">
 <title>⚡ VoltContent v2</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<!-- Firebase CDN -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 :root{--bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;--card:#16161f;--border:#2a2a3a;--accent:#f0b429;--accent2:#ff6b35;--accent3:#4af0a0;--text:#e8e8f0;--text2:#9090a8;--text3:#5a5a72;--yt:#ff4040;--ig:#e040fb;--tt:#40e0ff;--r:12px;--sh:0 4px 24px rgba(0,0,0,.4)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -403,63 +399,57 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
   .pci{font-size:10px;gap:3px}
 }
 
+
+/* ── LOGIN SCREEN ─────────────────────────────────────────── */
+#ls{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
+#ls.off{display:none}
+.lb{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;width:92%;max-width:360px}
+.ll{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--accent);text-align:center;margin-bottom:4px}
+.ls{font-size:13px;color:var(--text2);text-align:center;margin-bottom:1.2rem}
+.li{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;margin-bottom:10px;outline:none}
+.li:focus{border-color:var(--accent)}
+.lbtn{width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:11px;font-size:15px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer}
+.lbtn:active{opacity:.85}
+.lerr{color:#ff6060;font-size:13px;text-align:center;min-height:16px;margin:4px 0}
+.lok{color:var(--accent3);font-size:13px;text-align:center;min-height:16px;margin:4px 0}
+.llink{background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;text-decoration:underline;display:block;margin:8px auto 0;font-family:'DM Sans',sans-serif}
+.lload{text-align:center;font-size:13px;color:var(--text2);display:none;margin-top:6px}
+
 /* TOAST */
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--accent);color:#000;font-weight:600;padding:9px 18px;border-radius:18px;font-size:13px;transition:transform .3s;z-index:2000;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
-
-/* TELA DE LOGIN */
-#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
-#login-screen.hidden{display:none}
-.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;width:100%;max-width:380px;margin:1rem}
-.login-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:var(--accent);text-align:center;margin-bottom:6px}
-.login-sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:1.5rem}
-.login-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;margin-bottom:12px;outline:none;transition:border-color .2s}
-.login-input:focus{border-color:var(--accent)}
-.login-btn{width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:11px;font-size:15px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer;transition:opacity .2s;margin-bottom:10px}
-.login-btn:hover{opacity:.85}
-.login-err{color:#ff6060;font-size:13px;text-align:center;min-height:18px;margin-bottom:4px}
-.login-loading{text-align:center;font-size:13px;color:var(--text2);display:none}
-.login-link{background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;text-decoration:underline;font-family:'DM Sans',sans-serif;padding:0}
-.login-link:hover{opacity:.75}
-.login-ok{color:#4af0a0;font-size:13px;text-align:center;min-height:18px;margin-bottom:4px}
 </style>
 </head>
 <body>
+<div id="ls">
+  <div class="lb">
+    <div class="ll">⚡ VoltContent</div>
 
-<!-- TELA DE LOGIN -->
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">⚡ VoltContent</div>
-
-    <!-- PAINEL LOGIN -->
-    <div id="painel-login">
-      <div class="login-sub">Faça login para acessar</div>
-      <input class="login-input" type="email" id="login-email" placeholder="Seu e-mail" autocomplete="email">
-      <input class="login-input" type="password" id="login-senha" placeholder="Sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()">
-      <div class="login-err" id="login-err"></div>
-      <button class="login-btn" onclick="fazerLogin()">Entrar</button>
-      <div class="login-loading" id="login-loading">Verificando sessão...</div>
-      <div style="text-align:center;margin-top:8px">
-        <button class="login-link" onclick="mostrarRecuperar()">Esqueci minha senha</button>
-      </div>
+    <!-- painel login -->
+    <div id="pl">
+      <div class="ls">Faça login para acessar</div>
+      <input class="li" type="email" id="le" placeholder="Seu e-mail" autocomplete="email">
+      <input class="li" type="password" id="lp" placeholder="Sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="lerr" id="lerr"></div>
+      <button class="lbtn" onclick="doLogin()">Entrar</button>
+      <div class="lload" id="lload">Entrando...</div>
+      <button class="llink" onclick="showRec()">Esqueci minha senha</button>
     </div>
 
-    <!-- PAINEL RECUPERAR SENHA -->
-    <div id="painel-recuperar" style="display:none">
-      <div class="login-sub">Informe seu e-mail para receber o link de redefinição</div>
-      <input class="login-input" type="email" id="recuperar-email" placeholder="Seu e-mail" autocomplete="email">
-      <div class="login-err" id="recuperar-err"></div>
-      <div class="login-ok" id="recuperar-ok"></div>
-      <button class="login-btn" onclick="enviarRecuperacao()">Enviar link de recuperação</button>
-      <div style="text-align:center;margin-top:8px">
-        <button class="login-link" onclick="mostrarLoginPanel()">← Voltar ao login</button>
-      </div>
+    <!-- painel recuperar -->
+    <div id="pr" style="display:none">
+      <div class="ls">Digite seu e-mail para receber o link de redefinição</div>
+      <input class="li" type="email" id="re" placeholder="Seu e-mail" autocomplete="email">
+      <div class="lerr" id="rerr"></div>
+      <div class="lok" id="rok"></div>
+      <button class="lbtn" onclick="doRec()">Enviar link</button>
+      <button class="llink" onclick="showLogin()">← Voltar ao login</button>
     </div>
 
   </div>
 </div>
 
-<div class="app" id="main-app" style="display:none">
+<div class="app" id="app" style="display:none">
 <div class="topbar">
   <button class="hamburger" onclick="toggleSidebar()" id="hamburger-btn">☰</button>
   <div class="logo">⚡ VoltContent <span>v2.0</span></div>
@@ -471,7 +461,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
     <button class="tb" onclick="showPanel('calendar')" id="tab-calendar">📅 <span class="tb-label">Calendário</span></button>
     <button class="tb" onclick="showPanel('trends')" id="tab-trends">📊 <span class="tb-label">Tendências</span></button>
     <button class="tb" onclick="toggleHistory()" style="margin-left:4px">🕐</button>
-    <button class="tb" onclick="fazerLogout()" style="margin-left:4px" title="Sair">🚪</button>
+    <button class="tb" onclick="doLogout()" style="margin-left:4px" title="Sair">🚪</button>
   </div>
 </div>
 <div class="pcounter">
@@ -569,7 +559,7 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 </div>
 
 </div><!-- main -->
-</div><!-- main-app -->
+</div><!-- app -->
 
 <!-- SIDEBAR OVERLAY -->
 <div class="sb-overlay" id="sb-overlay" onclick="toggleSidebar()"></div>
@@ -721,201 +711,143 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 </div>
 
 <div class="toast" id="toast"></div>
-
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
-// ============================================================
-//  FIREBASE — Configuração e Proteção de Sessão
-// ============================================================
-const firebaseConfig = {
-  apiKey: "AIzaSyAr4TuV9Y0U-2Wms3v0DrPut53FQIjhEkk",
-  authDomain: "famaeletrica-2026.firebaseapp.com",
-  projectId: "famaeletrica-2026",
-  storageBucket: "famaeletrica-2026.firebasestorage.app",
-  messagingSenderId: "502315190894",
-  appId: "1:502315190894:web:ada4b1bf42574afd12b47f"
-};
+// ═══════════════════════════════════════════════════════════
+//  FIREBASE + SESSÃO ÚNICA
+//  Regra 9 — globais declaradas aqui, fora de funções
+// ═══════════════════════════════════════════════════════════
+firebase.initializeApp({
+  apiKey:"AIzaSyAr4TuV9Y0U-2Wms3v0DrPut53FQIjhEkk",
+  authDomain:"famaeletrica-2026.firebaseapp.com",
+  projectId:"famaeletrica-2026",
+  storageBucket:"famaeletrica-2026.firebasestorage.app",
+  messagingSenderId:"502315190894",
+  appId:"1:502315190894:web:ada4b1bf42574afd12b47f"
+});
+const _auth = firebase.auth();
+const _db   = firebase.firestore();
+const _SK   = '__vs__';      // chave do token no localStorage
+let   _mon  = null;          // função cancel do listener Firestore
+let   _ready= false;         // app já foi aberto?
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db   = firebase.firestore();
+// ── Utilitário ───────────────────────────────────────────────
+function _tok(){ return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now().toString(36); }
 
-const SESSION_KEY = '__volt_session__';
-let _listenerSessao = null;
-let _recemLogou = false; // flag: ignora onAuthStateChanged logo após login
-
-function gerarToken(){
-  return (typeof crypto!=='undefined'&&crypto.randomUUID)
-    ? crypto.randomUUID()
-    : Math.random().toString(36).slice(2)+Date.now().toString(36);
+// ── Telas ────────────────────────────────────────────────────
+function _openApp(uid){
+  if(_ready) return;
+  _ready = true;
+  document.getElementById('ls').classList.add('off');
+  document.getElementById('app').style.display='flex';
+  // Inicia monitor APÓS 5s — tempo para o Firestore salvar o token
+  setTimeout(()=>_startMon(uid), 5000);
+}
+function _closeApp(){
+  _ready = false;
+  _stopMon();
+  document.getElementById('ls').classList.remove('off');
+  document.getElementById('app').style.display='none';
 }
 
-// LOGIN
-async function fazerLogin(){
-  const email = document.getElementById('login-email').value.trim();
-  const senha = document.getElementById('login-senha').value;
-  const err   = document.getElementById('login-err');
-  const load  = document.getElementById('login-loading');
-  err.textContent='';
-  if(!email||!senha){err.textContent='Preencha e-mail e senha.';return;}
-  load.style.display='block';
-  try{
-    // 1. Autentica no Firebase Auth
-    const cred = await auth.signInWithEmailAndPassword(email,senha);
-    const uid  = cred.user.uid;
-
-    // 2. Gera e salva token localmente
-    const token = gerarToken();
-    localStorage.setItem(SESSION_KEY, token);
-
-    // 3. Seta flag para ignorar o próximo onAuthStateChanged
-    _recemLogou = true;
-
-    // 4. Abre o app imediatamente — sem esperar o Firestore
-    mostrarApp(cred.user);
-
-    // 4. Salva token no Firestore em segundo plano
-    db.collection('sessions').doc(uid).set({
-      token,
-      navegador: navigator.userAgent.slice(0,100),
-      loginEm: new Date().toISOString()
-    }).catch(e => console.warn('Sessão não salva no Firestore:', e));
-
-  }catch(e){
-    load.style.display='none';
-    if(e.code==='auth/user-not-found'||e.code==='auth/wrong-password'||e.code==='auth/invalid-credential'){
-      err.textContent='E-mail ou senha incorretos.';
-    }else if(e.code==='auth/too-many-requests'){
-      err.textContent='Muitas tentativas. Tente mais tarde.';
-    }else{
-      err.textContent='Erro ao entrar. Verifique sua conexão.';
+// ── Monitor de sessão ────────────────────────────────────────
+function _startMon(uid){
+  _stopMon();
+  const myTok = localStorage.getItem(_SK);
+  if(!myTok || !_auth.currentUser) return;
+  _mon = _db.collection('sessions').doc(uid).onSnapshot(snap=>{
+    if(!snap||!snap.exists) return;
+    const cur = localStorage.getItem(_SK);
+    if(!cur) return;
+    if(snap.data().t !== cur){
+      // Outro dispositivo logou — desloga este
+      _stopMon();
+      localStorage.removeItem(_SK);
+      _auth.signOut();
+      _ready = false;
+      alert('⚠️ Sua conta foi acessada em outro dispositivo. Você foi desconectado.');
+      _closeApp();
     }
-  }finally{
-    load.style.display='none';
-  }
+  }, ()=>{});
 }
+function _stopMon(){ if(_mon){_mon();_mon=null;} }
 
-// LOGOUT
-async function fazerLogout(){
-  if(_listenerSessao){_listenerSessao();_listenerSessao=null;}
-  localStorage.removeItem(SESSION_KEY);
-  await auth.signOut();
-  mostrarLogin();
-}
-
-// RECUPERAÇÃO DE SENHA
-async function enviarRecuperacao(){
-  const email = document.getElementById('recuperar-email').value.trim();
-  const err   = document.getElementById('recuperar-err');
-  const ok    = document.getElementById('recuperar-ok');
-  err.textContent='';
-  ok.textContent='';
-  if(!email){err.textContent='Informe seu e-mail.';return;}
-  try{
-    await auth.sendPasswordResetEmail(email);
-    ok.textContent='✅ Link enviado! Verifique sua caixa de entrada.';
-    document.getElementById('recuperar-email').value='';
-  }catch(e){
-    if(e.code==='auth/user-not-found'){
-      err.textContent='E-mail não encontrado.';
-    }else{
-      err.textContent='Erro ao enviar. Tente novamente.';
-    }
-  }
-}
-
-// ALTERNAR PAINÉIS DA TELA DE LOGIN
-function mostrarRecuperar(){
-  document.getElementById('painel-login').style.display='none';
-  document.getElementById('painel-recuperar').style.display='block';
-  document.getElementById('recuperar-err').textContent='';
-  document.getElementById('recuperar-ok').textContent='';
-}
-
-function mostrarLoginPanel(){
-  document.getElementById('painel-recuperar').style.display='none';
-  document.getElementById('painel-login').style.display='block';
-  document.getElementById('login-err').textContent='';
-}
-
-// VERIFICAR SESSÃO — timeout de 3s para não travar
-async function verificarSessao(uid){
-  const local = localStorage.getItem(SESSION_KEY);
-  if(!local) return false;
-  try{
-    const snap = await Promise.race([
-      db.collection('sessions').doc(uid).get(),
-      new Promise((_,reject) => setTimeout(()=>reject(new Error('timeout')), 3000))
-    ]);
-    if(!snap.exists) return false;
-    return snap.data().token === local;
-  }catch(e){
-    // Se Firestore demorar ou falhar, libera o acesso (token local existe)
-    console.warn('Verificação de sessão falhou:', e.message);
-    return true;
-  }
-}
-
-// MONITORAR EM TEMPO REAL
-function monitorarSessao(uid){
-  // Aguarda 2s antes de ativar o listener
-  // Evita falso positivo logo após o login (onSnapshot dispara imediatamente)
-  setTimeout(()=>{
-    if(!auth.currentUser) return; // usuário já deslogou antes do timer
-    const local = localStorage.getItem(SESSION_KEY);
-    if(!local) return;
-
-    _listenerSessao = db.collection('sessions').doc(uid)
-      .onSnapshot(snap=>{
-        // Lê o token LOCAL no momento da comparação (sempre atualizado)
-        const tokenAtual = localStorage.getItem(SESSION_KEY);
-        if(!tokenAtual) return; // já deslogou localmente
-        if(!snap.exists || snap.data().token !== tokenAtual){
-          deslogarForcado();
-        }
-      }, err=>{
-        console.warn('Listener de sessão perdido:', err);
-      });
-  }, 2000);
-}
-
-async function deslogarForcado(){
-  if(_listenerSessao){_listenerSessao();_listenerSessao=null;}
-  localStorage.removeItem(SESSION_KEY);
-  await auth.signOut();
-  alert('⚠️ Sua conta foi acessada em outro dispositivo. Você foi desconectado.');
-  mostrarLogin();
-}
-
-function mostrarApp(user){
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('main-app').style.display='flex';
-  monitorarSessao(user.uid);
-}
-
-function mostrarLogin(){
-  document.getElementById('login-screen').classList.remove('hidden');
-  document.getElementById('main-app').style.display='none';
-}
-
-// AO CARREGAR — verifica se já estava logado
-auth.onAuthStateChanged(async user=>{
-  // Se acabou de logar, ignora este disparo — app já foi aberto
-  if(_recemLogou){ _recemLogou = false; return; }
-
-  if(user){
-    const valida = await verificarSessao(user.uid);
-    if(valida){
-      mostrarApp(user);
-    }else{
-      await auth.signOut();
-      localStorage.removeItem(SESSION_KEY);
-      mostrarLogin();
-    }
-  }else{
-    mostrarLogin();
+// ── onAuthStateChanged — só para restaurar sessão ao reabrir ─
+_auth.onAuthStateChanged(user=>{
+  if(_ready) return; // app já aberto via doLogin(), ignora
+  if(user && localStorage.getItem(_SK)){
+    _openApp(user.uid); // token local existe — restaura sessão
+  } else {
+    if(user) _auth.signOut(); // usuário sem token local — limpa
+    _closeApp();
   }
 });
 
+// ── LOGIN ────────────────────────────────────────────────────
+async function doLogin(){
+  const e=document.getElementById('le').value.trim();
+  const p=document.getElementById('lp').value;
+  const err=document.getElementById('lerr');
+  const ld=document.getElementById('lload');
+  err.textContent='';
+  if(!e||!p){err.textContent='Preencha e-mail e senha.';return;}
+  ld.style.display='block';
+  try{
+    const c=await _auth.signInWithEmailAndPassword(e,p);
+    const uid=c.user.uid;
+    const tok=_tok();
+    localStorage.setItem(_SK,tok);
+    _openApp(uid); // abre imediatamente
+    _db.collection('sessions').doc(uid).set({t:tok,d:new Date().toISOString()}).catch(()=>{});
+  }catch(ex){
+    const c=ex.code||'';
+    err.textContent=c.includes('user-not-found')||c.includes('wrong-password')||c.includes('invalid-credential')
+      ?'E-mail ou senha incorretos.'
+      :c.includes('too-many')?'Muitas tentativas. Aguarde.':'Erro de conexão. Tente novamente.';
+  }finally{ ld.style.display='none'; }
+}
+
+// ── LOGOUT ───────────────────────────────────────────────────
+async function doLogout(){
+  _stopMon();
+  localStorage.removeItem(_SK);
+  await _auth.signOut();
+  _closeApp();
+  showLogin();
+}
+
+// ── RECUPERAR SENHA ──────────────────────────────────────────
+async function doRec(){
+  const e=document.getElementById('re').value.trim();
+  const err=document.getElementById('rerr');
+  const ok=document.getElementById('rok');
+  err.textContent='';ok.textContent='';
+  if(!e){err.textContent='Informe seu e-mail.';return;}
+  try{
+    await _auth.sendPasswordResetEmail(e);
+    ok.textContent='✅ Link enviado! Verifique seu e-mail.';
+    document.getElementById('re').value='';
+  }catch(ex){
+    err.textContent=ex.code==='auth/user-not-found'?'E-mail não encontrado.':'Erro ao enviar.';
+  }
+}
+
+// ── PAINÉIS LOGIN / RECUPERAR ────────────────────────────────
+function showRec(){
+  document.getElementById('pl').style.display='none';
+  document.getElementById('pr').style.display='block';
+  document.getElementById('rerr').textContent='';
+  document.getElementById('rok').textContent='';
+}
+function showLogin(){
+  document.getElementById('pr').style.display='none';
+  document.getElementById('pl').style.display='block';
+  document.getElementById('lerr').textContent='';
+}
+
+// ═══════════════════════════════════════════════════════════
 const KB = {
 
   // ⚡ INSTALAÇÕES RESIDENCIAIS
