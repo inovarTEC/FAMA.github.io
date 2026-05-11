@@ -758,18 +758,33 @@ async function fazerLogin(){
   if(!email||!senha){err.textContent='Preencha e-mail e senha.';return;}
   load.style.display='block';
   try{
+    // 1. Autentica no Firebase Auth
     const cred = await auth.signInWithEmailAndPassword(email,senha);
     const uid  = cred.user.uid;
+
+    // 2. Gera e salva token localmente
     const token = gerarToken();
     localStorage.setItem(SESSION_KEY, token);
-    await db.collection('sessions').doc(uid).set({
+
+    // 3. Abre o app imediatamente — sem esperar o Firestore
+    mostrarApp(cred.user);
+
+    // 4. Salva token no Firestore em segundo plano
+    db.collection('sessions').doc(uid).set({
       token,
       navegador: navigator.userAgent.slice(0,100),
       loginEm: new Date().toISOString()
-    });
-    mostrarApp(cred.user);
+    }).catch(e => console.warn('Sessão não salva no Firestore:', e));
+
   }catch(e){
-    err.textContent='E-mail ou senha incorretos.';
+    load.style.display='none';
+    if(e.code==='auth/user-not-found'||e.code==='auth/wrong-password'||e.code==='auth/invalid-credential'){
+      err.textContent='E-mail ou senha incorretos.';
+    }else if(e.code==='auth/too-many-requests'){
+      err.textContent='Muitas tentativas. Tente mais tarde.';
+    }else{
+      err.textContent='Erro ao entrar. Verifique sua conexão.';
+    }
   }finally{
     load.style.display='none';
   }
@@ -818,13 +833,22 @@ function mostrarLoginPanel(){
   document.getElementById('login-err').textContent='';
 }
 
-// VERIFICAR SESSÃO
+// VERIFICAR SESSÃO — timeout de 3s para não travar
 async function verificarSessao(uid){
   const local = localStorage.getItem(SESSION_KEY);
   if(!local) return false;
-  const snap = await db.collection('sessions').doc(uid).get();
-  if(!snap.exists) return false;
-  return snap.data().token === local;
+  try{
+    const snap = await Promise.race([
+      db.collection('sessions').doc(uid).get(),
+      new Promise((_,reject) => setTimeout(()=>reject(new Error('timeout')), 3000))
+    ]);
+    if(!snap.exists) return false;
+    return snap.data().token === local;
+  }catch(e){
+    // Se Firestore demorar ou falhar, libera o acesso (token local existe)
+    console.warn('Verificação de sessão falhou:', e.message);
+    return true;
+  }
 }
 
 // MONITORAR EM TEMPO REAL
