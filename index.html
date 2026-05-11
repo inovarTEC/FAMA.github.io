@@ -716,8 +716,18 @@ h1,h2,h3,h4{font-family:'Syne',sans-serif}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════
-//  FIREBASE + SESSÃO ÚNICA
+//  FIREBASE + SESSÃO ÚNICA — BIDIRECIONAL
 //  Regra 9 — globais declaradas aqui, fora de funções
+//
+//  CORREÇÕES APLICADAS:
+//  #1 — Listener agora é bidirecional: quem reassume a sessão
+//       também expulsa quem estava antes (em tempo real).
+//  #2 — _startMon() registrado dentro do onAuthStateChanged
+//       com cleanup correto, garantindo listener sempre ativo.
+//  #3 — visibilitychange + online como fallback para background
+//       (celular que volta do sono, aba que volta ao foco).
+//  #4 — doLogin() agora aguarda a gravação no Firestore antes
+//       de abrir o app, eliminando a corrida entre gravar e ouvir.
 // ═══════════════════════════════════════════════════════════
 firebase.initializeApp({
   apiKey:"AIzaSyAr4TuV9Y0U-2Wms3v0DrPut53FQIjhEkk",
@@ -729,15 +739,17 @@ firebase.initializeApp({
 });
 const _auth = firebase.auth();
 const _db   = firebase.firestore();
-// Força conexão em tempo real — desativa cache offline do Firestore
-_db.settings({ experimentalForceLongPolling: true });
-_db.enableNetwork().catch(()=>{});
-const _SK   = '__vs__';      // chave do token no localStorage
-let   _mon  = null;          // função cancel do listener Firestore
-let   _ready= false;         // app já foi aberto?
+const _SK   = '__vs__';   // chave do token no localStorage
+let   _mon  = null;       // função cancel do listener Firestore
+let   _ready= false;      // app já foi aberto?
 
 // ── Utilitário ───────────────────────────────────────────────
-function _tok(){ return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now().toString(36); }
+// Gera token UUID único por sessão
+function _tok(){
+  return crypto.randomUUID
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
 
 // ── Telas ────────────────────────────────────────────────────
 function _openApp(uid){
@@ -745,9 +757,11 @@ function _openApp(uid){
   _ready = true;
   document.getElementById('ls').classList.add('off');
   document.getElementById('app').style.display='flex';
-  // Inicia monitor após 1s — tempo mínimo para salvar token
-  setTimeout(()=>_startMon(uid), 1000);
+  // Monitor iniciado sem delay — token já está gravado no Firestore
+  // antes de _openApp() ser chamado (ver doLogin e onAuthStateChanged)
+  _startMon(uid);
 }
+
 function _closeApp(){
   _ready = false;
   _stopMon();
@@ -755,99 +769,158 @@ function _closeApp(){
   document.getElementById('app').style.display='none';
 }
 
-// ── Monitor de sessão ────────────────────────────────────────
-function _startMon(uid){
+// ── Kick — exibe alerta e desloga ────────────────────────────
+// Problema #1 corrigido: função única para expulsão,
+// usada tanto pelo listener quanto pelo fallback de visibilidade.
+function _kick(){
+  if(!_ready) return; // já foi expulso, evita duplo disparo
   _stopMon();
+  localStorage.removeItem(_SK);
+  _ready = false;
+  _auth.signOut().catch(()=>{});
+  _closeApp();
+  alert('⚠️ Sua conta foi acessada em outro dispositivo. Você foi desconectado.');
+}
+
+// ── Monitor de sessão ────────────────────────────────────────
+// Problema #1 e #2 corrigidos:
+// - onSnapshot ouve o documento do próprio uid
+// - quando qualquer dispositivo grava um token novo,
+//   TODOS os outros recebem o evento e se auto-expulsam
+// - cleanup sempre feito antes de registrar novo listener
+function _startMon(uid){
+  _stopMon(); // garante zero listeners anteriores (Regra 2)
   const myTok = localStorage.getItem(_SK);
   if(!myTok || !_auth.currentUser) return;
   _mon = _db.collection('sessions').doc(uid).onSnapshot(snap=>{
-    if(!snap||!snap.exists) return;
+    if(!snap || !snap.exists) return;
     const cur = localStorage.getItem(_SK);
-    if(!cur) return;
+    if(!cur) return;               // já deslogado localmente
     if(snap.data().t !== cur){
-      // Outro dispositivo logou — desloga este
-      _stopMon();
-      localStorage.removeItem(_SK);
-      _auth.signOut();
-      _ready = false;
-      alert('⚠️ Sua conta foi acessada em outro dispositivo. Você foi desconectado.');
-      _closeApp();
+      // Token mudou → outro dispositivo tomou a sessão → expulsa
+      _kick();
     }
-  }, ()=>{});
+  }, ()=>{}); // silencia erros de rede (Firestore tenta reconectar sozinho)
 }
-function _stopMon(){ if(_mon){_mon();_mon=null;} }
 
-// ── onAuthStateChanged — só para restaurar sessão ao reabrir ─
+function _stopMon(){
+  if(_mon){ _mon(); _mon = null; }
+}
+
+// ── Fallback: verifica sessão ao voltar do background ────────
+// Problema #3 corrigido: quando o dispositivo dorme ou a aba
+// fica em background, o Firestore pode não disparar o evento.
+// Ao voltar ao foco, verifica ativamente se o token ainda é válido.
+async function _checkSessionNow(){
+  if(!_ready) return;
+  const user = _auth.currentUser;
+  if(!user) return;
+  const cur = localStorage.getItem(_SK);
+  if(!cur){ _kick(); return; }
+  try{
+    const snap = await _db.collection('sessions').doc(user.uid).get();
+    if(!snap.exists || snap.data().t !== cur) _kick();
+  }catch(e){} // silencia erros de rede no fallback
+}
+
+// visibilitychange: aba voltou ao foco
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible') _checkSessionNow();
+});
+// online: dispositivo reconectou à internet
+window.addEventListener('online', _checkSessionNow);
+
+// ── onAuthStateChanged ───────────────────────────────────────
+// Problema #2 corrigido: _startMon() é chamado AQUI,
+// garantindo que o listener seja registrado sempre que o
+// Firebase reconhecer o usuário — inclusive ao reabrir o app.
 _auth.onAuthStateChanged(user=>{
   if(_ready) return; // app já aberto via doLogin(), ignora
   if(user && localStorage.getItem(_SK)){
-    _openApp(user.uid); // token local existe — restaura sessão
+    // Token local existe — restaura sessão
+    // _openApp chama _startMon internamente
+    _openApp(user.uid);
   } else {
-    if(user) _auth.signOut(); // usuário sem token local — limpa
+    if(user) _auth.signOut().catch(()=>{}); // usuário sem token local — limpa
     _closeApp();
   }
 });
 
 // ── LOGIN ────────────────────────────────────────────────────
+// Problema #4 corrigido: aguarda a gravação no Firestore
+// ANTES de abrir o app e registrar o listener.
+// Isso elimina a corrida entre "gravar" e "ouvir" o token.
 async function doLogin(){
-  const e=document.getElementById('le').value.trim();
-  const p=document.getElementById('lp').value;
-  const err=document.getElementById('lerr');
-  const ld=document.getElementById('lload');
-  err.textContent='';
-  if(!e||!p){err.textContent='Preencha e-mail e senha.';return;}
-  ld.style.display='block';
+  const e   = document.getElementById('le').value.trim();
+  const p   = document.getElementById('lp').value;
+  const err = document.getElementById('lerr');
+  const ld  = document.getElementById('lload');
+  err.textContent = '';
+  if(!e || !p){ err.textContent = 'Preencha e-mail e senha.'; return; }
+  ld.style.display = 'block';
   try{
-    const c=await _auth.signInWithEmailAndPassword(e,p);
-    const uid=c.user.uid;
-    const tok=_tok();
-    localStorage.setItem(_SK,tok);
-    _openApp(uid); // abre imediatamente
-    _db.collection('sessions').doc(uid).set({t:tok,d:new Date().toISOString()}).catch(()=>{});
+    const c   = await _auth.signInWithEmailAndPassword(e, p);
+    const uid = c.user.uid;
+    const tok = _tok();
+    localStorage.setItem(_SK, tok);
+    // Grava no Firestore e SÓ ENTÃO abre o app
+    // Assim o listener não verá o token como "diferente" ao iniciar
+    await _db.collection('sessions').doc(uid).set({
+      t: tok,
+      d: new Date().toISOString()
+    });
+    _openApp(uid);
   }catch(ex){
-    const c=ex.code||'';
-    err.textContent=c.includes('user-not-found')||c.includes('wrong-password')||c.includes('invalid-credential')
-      ?'E-mail ou senha incorretos.'
-      :c.includes('too-many')?'Muitas tentativas. Aguarde.':'Erro de conexão. Tente novamente.';
-  }finally{ ld.style.display='none'; }
+    const c = ex.code || '';
+    err.textContent =
+      c.includes('user-not-found') || c.includes('wrong-password') || c.includes('invalid-credential')
+        ? 'E-mail ou senha incorretos.'
+        : c.includes('too-many')
+          ? 'Muitas tentativas. Aguarde.'
+          : 'Erro de conexão. Tente novamente.';
+  }finally{
+    ld.style.display = 'none';
+  }
 }
 
 // ── LOGOUT ───────────────────────────────────────────────────
 async function doLogout(){
   _stopMon();
   localStorage.removeItem(_SK);
-  await _auth.signOut();
+  await _auth.signOut().catch(()=>{});
   _closeApp();
   showLogin();
 }
 
 // ── RECUPERAR SENHA ──────────────────────────────────────────
 async function doRec(){
-  const e=document.getElementById('re').value.trim();
-  const err=document.getElementById('rerr');
-  const ok=document.getElementById('rok');
-  err.textContent='';ok.textContent='';
-  if(!e){err.textContent='Informe seu e-mail.';return;}
+  const e   = document.getElementById('re').value.trim();
+  const err = document.getElementById('rerr');
+  const ok  = document.getElementById('rok');
+  err.textContent = ''; ok.textContent = '';
+  if(!e){ err.textContent = 'Informe seu e-mail.'; return; }
   try{
     await _auth.sendPasswordResetEmail(e);
-    ok.textContent='✅ Link enviado! Verifique seu e-mail.';
-    document.getElementById('re').value='';
+    ok.textContent = '✅ Link enviado! Verifique seu e-mail.';
+    document.getElementById('re').value = '';
   }catch(ex){
-    err.textContent=ex.code==='auth/user-not-found'?'E-mail não encontrado.':'Erro ao enviar.';
+    err.textContent = ex.code === 'auth/user-not-found'
+      ? 'E-mail não encontrado.'
+      : 'Erro ao enviar.';
   }
 }
 
 // ── PAINÉIS LOGIN / RECUPERAR ────────────────────────────────
 function showRec(){
-  document.getElementById('pl').style.display='none';
-  document.getElementById('pr').style.display='block';
-  document.getElementById('rerr').textContent='';
-  document.getElementById('rok').textContent='';
+  document.getElementById('pl').style.display = 'none';
+  document.getElementById('pr').style.display = 'block';
+  document.getElementById('rerr').textContent  = '';
+  document.getElementById('rok').textContent   = '';
 }
 function showLogin(){
-  document.getElementById('pr').style.display='none';
-  document.getElementById('pl').style.display='block';
-  document.getElementById('lerr').textContent='';
+  document.getElementById('pr').style.display = 'none';
+  document.getElementById('pl').style.display = 'block';
+  document.getElementById('lerr').textContent  = '';
 }
 
 // ═══════════════════════════════════════════════════════════
