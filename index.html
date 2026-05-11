@@ -741,6 +741,7 @@ const db   = firebase.firestore();
 
 const SESSION_KEY = '__volt_session__';
 let _listenerSessao = null;
+let _recemLogou = false; // flag: ignora onAuthStateChanged logo após login
 
 function gerarToken(){
   return (typeof crypto!=='undefined'&&crypto.randomUUID)
@@ -766,7 +767,10 @@ async function fazerLogin(){
     const token = gerarToken();
     localStorage.setItem(SESSION_KEY, token);
 
-    // 3. Abre o app imediatamente — sem esperar o Firestore
+    // 3. Seta flag para ignorar o próximo onAuthStateChanged
+    _recemLogou = true;
+
+    // 4. Abre o app imediatamente — sem esperar o Firestore
     mostrarApp(cred.user);
 
     // 4. Salva token no Firestore em segundo plano
@@ -895,6 +899,9 @@ function mostrarLogin(){
 
 // AO CARREGAR — verifica se já estava logado
 auth.onAuthStateChanged(async user=>{
+  // Se acabou de logar, ignora este disparo — app já foi aberto
+  if(_recemLogou){ _recemLogou = false; return; }
+
   if(user){
     const valida = await verificarSessao(user.uid);
     if(valida){
