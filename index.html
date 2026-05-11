@@ -853,13 +853,25 @@ async function verificarSessao(uid){
 
 // MONITORAR EM TEMPO REAL
 function monitorarSessao(uid){
-  const local = localStorage.getItem(SESSION_KEY);
-  _listenerSessao = db.collection('sessions').doc(uid)
-    .onSnapshot(snap=>{
-      if(!snap.exists||snap.data().token!==local){
-        deslogarForcado();
-      }
-    });
+  // Aguarda 2s antes de ativar o listener
+  // Evita falso positivo logo após o login (onSnapshot dispara imediatamente)
+  setTimeout(()=>{
+    if(!auth.currentUser) return; // usuário já deslogou antes do timer
+    const local = localStorage.getItem(SESSION_KEY);
+    if(!local) return;
+
+    _listenerSessao = db.collection('sessions').doc(uid)
+      .onSnapshot(snap=>{
+        // Lê o token LOCAL no momento da comparação (sempre atualizado)
+        const tokenAtual = localStorage.getItem(SESSION_KEY);
+        if(!tokenAtual) return; // já deslogou localmente
+        if(!snap.exists || snap.data().token !== tokenAtual){
+          deslogarForcado();
+        }
+      }, err=>{
+        console.warn('Listener de sessão perdido:', err);
+      });
+  }, 2000);
 }
 
 async function deslogarForcado(){
